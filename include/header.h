@@ -9,6 +9,10 @@
 /****************************************************** Constantes generales */
 #define TRUE  1
 #define FALSE 0
+
+/****************************************************** Constantes simbólicas */
+#define TALLA_TIPO_SIMPLE 1 /* Talla asociada a los tipos simples */
+#define TALLA_SEGENLACES 2 /* Talla del segmento de Enlaces de Control*/
 /************************************* Variables externas definidas en el AL */
 extern int yylex();
 extern int yyparse();
@@ -21,6 +25,19 @@ extern void yyerror(const char * msg) ;   /* Tratamiento de errores          */
 
 extern int verbosidad;                   /* Flag si se desea una traza       */
 extern int numErrores;              /* Contador del numero de errores        */
+extern int verTdS; /* Flag para saber si mostrar la TdS */
+/************************************* Variables externas definidas en las librerías */
+extern int dvar; /* Desplazamiento en el Segmento de Variables */
+extern int niv; /* Nivel de anidamiento "global" o "local" */
+
+typedef struct atr /*Atributo para símbolos con más de 1 atributo*/
+{ 
+  char *name;
+  int  refe;
+  int  type;
+  int  talla;
+  int  desp;
+} ATR;
 
 #endif  /* _HEADER_H */
 /*****************************************************************************/

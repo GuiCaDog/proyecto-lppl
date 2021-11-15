@@ -1,7 +1,14 @@
 %{
 	#include <stdio.h>
+	#include "libtds.h"
 	#include "header.h"
 %}
+
+%union {
+  int cent ;
+  char *ident ;
+  ATR atr;
+}
 
 %token INTEGER_ BOOLEAN_ STRUCT_ RETURN_ READ_ PRINT_
 %token IF_ ELSE_ WHILE_ TRUE_ FALSE_
@@ -9,12 +16,14 @@
 %token AND_ OR_ EQ_ NEQ_ GT_ GTEQ_ LT_ LTEQ_
 %token PLUS_ MINUS_ MULT_ DIV_ EXCL_
 %token ASIG_ COMMA_ DOT_
-%token ID_ CTE_
-
+%token <ident> ID_ 
+%token <cent> CTE_
+%type <atr> declaracion declaracionVariable tipoSimple listaCampos 
+%type <atr> declaracionFuncion
 %%
 
-programa 
-	: listaDeclaraciones
+programa
+	: { dvar = 0; niv = 0; } listaDeclaraciones
 	;
 listaDeclaraciones
 	: declaracion
@@ -22,16 +31,33 @@ listaDeclaraciones
 	;
 declaracion 
 	: declaracionVariable
+	  { insTdS($1.name, VARIABLE, $1.type, niv, dvar, $1.refe); 
+	    dvar += $1.talla; }
 	| declaracionFuncion
 	;
 declaracionVariable 
 	: tipoSimple ID_ SEMIC_
+	  { $$.name = $2; 
+	    $$.type = $1.type; 
+	    $$.talla = $1.talla; }
 	| tipoSimple ID_ OBRACK_ CTE_ CBRACK_ SEMIC_
+	  { $$.name = $2; 
+	    $$.type = $1.type; 
+	    $$.talla = $1.talla; }
 	| STRUCT_ OBRACE_ listaCampos CBRACE_ ID_ SEMIC_
+	  { $$.name = $5; 
+	    $$.type = T_RECORD; 
+	    $$.talla = $3.talla; }
 	;
 tipoSimple 
-	: INTEGER_
+	: INTEGER_ 
+	  { $$.type = T_ENTERO; 
+            $$.talla = TALLA_TIPO_SIMPLE; 
+            $$.refe = -1; }
 	| BOOLEAN_
+	  { $$.type = T_ENTERO; 
+            $$.talla = TALLA_TIPO_SIMPLE; 
+            $$.refe = -1; }
 	;
 listaCampos 
 	: tipoSimple ID_ SEMIC_

@@ -68,8 +68,8 @@ false { retornar(FALSE_); }
 "," { retornar(COMMA_); }
 "." { retornar(DOT_) ; }
 
-{id} { retornar(ID_); }
-{cte} { retornar(CTE_); }
+{id} { yylval.ident = strdup(yytext);  retornar(ID_); }
+{cte} { yylval.cent = atoi(yytext); retornar(CTE_); }
 
 {comentario} { if (verbosidad) {ECHO; fprintf(stdout, "%3d.- ", yylineno); } }
 {delimitador} { if (verbosidad) ECHO ; }
