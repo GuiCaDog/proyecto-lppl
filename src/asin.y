@@ -98,8 +98,13 @@ listaParametrosFormales
             $$.refe = refe;
             insTdS($<ident>2, PARAMETRO, $<cent>1, niv, -$$.talla, refe); }
 	;
+
+/** Solamente hay que incrementar y decrementar el nivel en el inicio y
+    fin de bloque respectivamente, ya que las declaraciones de variables
+    tienen en cuenta el nivel
+ */
 bloque 
-	: OBRACE_ declaracionVariableLocal listaInstrucciones RETURN_ expresion SEMIC_ CBRACE_
+	: OBRACE_ {niv += 1;} declaracionVariableLocal listaInstrucciones RETURN_ expresion SEMIC_ {niv -= 1;} CBRACE_
 	;
 declaracionVariableLocal 
 	:
