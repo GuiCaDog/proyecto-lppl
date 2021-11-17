@@ -39,5 +39,16 @@ typedef struct atr /*Atributo para símbolos con más de 1 atributo*/
   int  desp;
 } ATR;
 
+typedef struct camp /*Atributo para símbolos con más de 1 atributo*/
+{ 
+  int  refe;
+  int  talla;
+} CAMPO;
+
+typedef struct fnc /*Atributo para símbolos con más de 1 atributo*/
+{ 
+  int  desp;
+} FNC;
+
 #endif  /* _HEADER_H */
 /*****************************************************************************/
