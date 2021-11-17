@@ -26,6 +26,7 @@
 
 %%
 
+/******************************* GUILLEM *******************************/ 
 programa
 	: { dvar = 0; niv = 0; } listaDeclaraciones
 	;
@@ -99,6 +100,7 @@ listaParametrosFormales
             insTdS($<ident>2, PARAMETRO, $<cent>1, niv, -$$.talla, refe); }
 	;
 
+/******************************** AREG ********************************/ 
 /** Solamente hay que incrementar y decrementar el nivel en el inicio y
     fin de bloque respectivamente, ya que las declaraciones de variables
     tienen en cuenta el nivel
@@ -136,6 +138,7 @@ instruccionSeleccion
 instruccionIteracion 
 	: WHILE_ OPAREN_ expresion CPAREN_ instruccion
 	;
+/******************************* MYKOLA *******************************/ 
 expresion 
 	: expresionIgualdad
 	| expresion operadorLogico expresionIgualdad
@@ -144,6 +147,7 @@ expresionIgualdad
 	: expresionRelacional
 	| expresionIgualdad operadorIgualdad expresionRelacional
 	;
+/******************************** FRAN ********************************/ 
 expresionRelacional 
 	: expresionAditiva
 	| expresionRelacional operadorRelacional expresionAditiva
@@ -160,6 +164,7 @@ expresionUnaria
 	: expresionSufija
 	| operadorUnario expresionUnaria
 	;
+/******************************* MYKOLA *******************************/ 
 expresionSufija 
 	: constante 
 	| OPAREN_ expresion CPAREN_
@@ -185,6 +190,7 @@ operadorLogico
 	: AND_
 	| OR_
 	;
+/******************************** FRAN ********************************/ 
 operadorIgualdad
 	: EQ_
 	| NEQ_
