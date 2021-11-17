@@ -45,10 +45,10 @@ typedef struct camp /*Atributo para símbolos con más de 1 atributo*/
   int  talla;
 } CAMPO;
 
-typedef struct fnc /*Atributo para símbolos con más de 1 atributo*/
+typedef struct func /*Atributo para símbolos con más de 1 atributo*/
 { 
-  int  desp;
-} FNC;
+  int  aux;
+} FUNC;
 
 #endif  /* _HEADER_H */
 /*****************************************************************************/
