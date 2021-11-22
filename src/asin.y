@@ -22,7 +22,6 @@
 %token <cent> CTE_
 %type <cent> tipoSimple
 %type <camp> listaCampos parametrosFormales listaParametrosFormales
-%type <func> declaracionFuncion 
 
 %%
 
@@ -44,60 +43,57 @@ declaracionVariable
 		yyerror("Identificador repetido");
             else dvar +=  TALLA_TIPO_SIMPLE; }
 	| tipoSimple ID_ OBRACK_ CTE_ CBRACK_ SEMIC_
-	  { int numel = $<cent>4;
+	  { int numel = $4;
             if ($4 <= 0) {
                yyerror("Talla negativa para el array");
                numel = 0;
             }
-            int refe = insTdA($<cent>1, numel);
-            if ( ! insTdS($<ident>2, VARIABLE, T_ARRAY, niv, dvar, refe))
+            int refe = insTdA($1, numel);
+            if ( ! insTdS($2, VARIABLE, T_ARRAY, niv, dvar, refe))
 		yyerror("Identificador repetido");
 	    else dvar += numel * TALLA_TIPO_SIMPLE; }
 	| STRUCT_ OBRACE_ listaCampos CBRACE_ ID_ SEMIC_
-	  { if (! insTdS($<ident>5, VARIABLE, T_RECORD, niv, dvar, $3.refe))
+	  { if (! insTdS($5, VARIABLE, T_RECORD, niv, dvar, $3.refe))
 		yyerror("Identificador repetido");
             else dvar += $3.talla;
 	     }
 	;
 tipoSimple 
 	: INTEGER_ 
-	  { $<cent>$ = T_ENTERO; }
+	  { $$ = T_ENTERO; }
 	| BOOLEAN_
-	  { $<cent>$ = T_ENTERO; }
+	  { $$ = T_LOGICO; }
 	;
 listaCampos 
 	: tipoSimple ID_ SEMIC_
-	  { int refe = insTdR(-1, $<ident>2, $<cent>1, 0);
-            $$.talla = TALLA_TIPO_SIMPLE;
-	    $$.refe = refe; }
+	  { $$.refe = insTdR(-1, $2, $1, 0);
+            $$.talla = TALLA_TIPO_SIMPLE; }
 	| listaCampos tipoSimple ID_ SEMIC_
-	  { insTdR($1.refe, $<ident>3, $<cent>2, $1.talla);
-            $$.talla = $1.talla + TALLA_TIPO_SIMPLE;
-	    $$.refe = $1.refe; }
+	  { $$.refe = insTdR($1.refe, $3, $2, $1.talla);
+            $$.talla = $1.talla + TALLA_TIPO_SIMPLE; }
 	;
 declaracionFuncion 
-	: tipoSimple ID_ OPAREN_ parametrosFormales CPAREN_ bloque
-	  { niv+=1; cargaContexto(niv); $$.aux = dvar; dvar = 0; 
-            insTdS($<ident>2, FUNCION, $<cent>1, niv-1, dvar, $4.refe); 
-	    descargaContexto(niv); niv-=1; dvar = $$.aux; }
+	: tipoSimple ID_  
+          { niv+=1; cargaContexto(niv); $<cent>$ = dvar; dvar = 0; }
+          OPAREN_ parametrosFormales CPAREN_  
+          { insTdS($<ident>2, FUNCION, $<cent>1, niv-1, dvar, $<camp>5.refe); } 
+          bloque 
+          { descargaContexto(niv);  niv-=1; dvar = $<cent>3; }
 	;
 parametrosFormales 
 	: { $$.refe = insTdD(-1, T_VACIO); } 
 	| listaParametrosFormales
-	  { $$.refe = $1.refe; 
-            $$.talla = $1.talla - TALLA_SEGENLACES; }
+	  { $$.refe = $1.refe; }
 	;
 listaParametrosFormales 
 	: tipoSimple ID_
 	  { $$.talla = TALLA_SEGENLACES + TALLA_TIPO_SIMPLE;
-            int refe = insTdD(-1, $<cent>1);
-            $$.refe = refe;
-            insTdS($<ident>2, PARAMETRO, $<cent>1, niv, -$$.talla, refe); }
+            $$.refe = insTdD(-1, $1);
+            insTdS($2, PARAMETRO, $1, niv, -$$.talla, 0); }
 	| tipoSimple ID_ COMMA_ listaParametrosFormales
 	  { $$.talla = $4.talla + TALLA_TIPO_SIMPLE;
-            int refe = insTdD($4.refe, $<cent>1);
-            $$.refe = refe;
-            insTdS($<ident>2, PARAMETRO, $<cent>1, niv, -$$.talla, refe); }
+            $$.refe = insTdD($4.refe, $1);
+            insTdS($2, PARAMETRO, $1, niv, -$$.talla, 0); }
 	;
 
 /******************************** AREG ********************************/ 
@@ -106,7 +102,7 @@ listaParametrosFormales
     tienen en cuenta el nivel
  */
 bloque 
-	: OBRACE_ {niv += 1;} declaracionVariableLocal listaInstrucciones RETURN_ expresion SEMIC_ {niv -= 1;} CBRACE_
+	: OBRACE_ declaracionVariableLocal listaInstrucciones RETURN_ expresion SEMIC_ CBRACE_
 	;
 declaracionVariableLocal 
 	:
