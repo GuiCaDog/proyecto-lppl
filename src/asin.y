@@ -27,7 +27,7 @@
 
 /******************************* GUILLEM *******************************/ 
 programa
-	: { dvar = 0; niv = 0; } listaDeclaraciones
+	: { dvar = 0; niv = 0; cargaContexto(niv); } listaDeclaraciones 
 	;
 listaDeclaraciones
 	: declaracion
@@ -41,7 +41,7 @@ declaracionVariable
 	: tipoSimple ID_ SEMIC_
 	  { if (!insTdS($2, VARIABLE, $1, niv, dvar, -1)) 
 		yyerror("Identificador repetido");
-            else dvar +=  TALLA_TIPO_SIMPLE; }
+            else dvar +=  TALLA_TIPO_SIMPLE;  }
 	| tipoSimple ID_ OBRACK_ CTE_ CBRACK_ SEMIC_
 	  { int numel = $4;
             if ($4 <= 0) {
@@ -51,7 +51,7 @@ declaracionVariable
             int refe = insTdA($1, numel);
             if ( ! insTdS($2, VARIABLE, T_ARRAY, niv, dvar, refe))
 		yyerror("Identificador repetido");
-	    else dvar += numel * TALLA_TIPO_SIMPLE; }
+	    else dvar += numel * TALLA_TIPO_SIMPLE; } 
 	| STRUCT_ OBRACE_ listaCampos CBRACE_ ID_ SEMIC_
 	  { if (! insTdS($5, VARIABLE, T_RECORD, niv, dvar, $3.refe))
 		yyerror("Identificador repetido");
@@ -78,7 +78,7 @@ declaracionFuncion
           OPAREN_ parametrosFormales CPAREN_  
           { insTdS($<ident>2, FUNCION, $<cent>1, niv-1, dvar, $<camp>5.refe); } 
           bloque 
-          { descargaContexto(niv);  niv-=1; dvar = $<cent>3; }
+          { mostrarTdS(); descargaContexto(niv);  niv-=1; dvar = $<cent>3; }
 	;
 parametrosFormales 
 	: { $$.refe = insTdD(-1, T_VACIO); } 
@@ -89,11 +89,11 @@ listaParametrosFormales
 	: tipoSimple ID_
 	  { $$.talla = TALLA_SEGENLACES + TALLA_TIPO_SIMPLE;
             $$.refe = insTdD(-1, $1);
-            insTdS($2, PARAMETRO, $1, niv, -$$.talla, 0); }
+            insTdS($2, PARAMETRO, $1, niv, -$$.talla, -1); }
 	| tipoSimple ID_ COMMA_ listaParametrosFormales
 	  { $$.talla = $4.talla + TALLA_TIPO_SIMPLE;
             $$.refe = insTdD($4.refe, $1);
-            insTdS($2, PARAMETRO, $1, niv, -$$.talla, 0); }
+            insTdS($2, PARAMETRO, $1, niv, -$$.talla, -1); }
 	;
 
 /******************************** AREG ********************************/ 
