@@ -22,7 +22,7 @@
 #define OP_DIV      9
 #define OP_PLUS     10
 #define OP_MINUS    11
-#define OP_EXCL     12
+#define OP_NOT      12
 
 /****************************************************** Constantes simbólicas */
 #define TALLA_TIPO_SIMPLE 1 /* Talla asociada a los tipos simples */

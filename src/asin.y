@@ -204,7 +204,7 @@ expresionUnaria
         $$.t = T_ERROR;
         if ($2.t != T_ERROR)
             if ($2.t == T_ENTERO)
-                if ($1 == OP_EXCL)
+                if ($1 == OP_NOT)
                     yyerror("El operador NOT es incompatible con enteros");
                 else
                     $$.t = T_ENTERO;
@@ -265,6 +265,6 @@ operadorMultiplicativo
 operadorUnario 
 	: PLUS_     { $$ = OP_PLUS; }
 	| MINUS_    { $$ = OP_MINUS; }
-	| EXCL_     { $$ = OP_EXCL; }
+	| EXCL_     { $$ = OP_NOT; }
 	;
 %%
