@@ -204,12 +204,12 @@ expresionUnaria
         $$.t = T_ERROR;
         if ($2.t != T_ERROR)
             if ($2.t == T_ENTERO)
-                if ($1 == OP_NOT)
+                if ($1 == OP_EXCL)
                     yyerror("El operador NOT es incompatible con enteros");
                 else
                     $$.t = T_ENTERO;
             else if ($2.t == T_LOGICO)
-                if ($1 != OP_SUMA && $1 != OP_RESTA)
+                if ($1 != OP_PLUS && $1 != OP_MINUS)
                     $$.t = T_LOGICO;
                 else
                     yyerror("La suma y la resta son operadores binarios. Es incompatible con tipos logicos.");
@@ -245,26 +245,26 @@ operadorLogico
 	;
 /******************************** FRAN ********************************/ 
 operadorIgualdad
-	: EQ_
-	| NEQ_
+	: EQ_       { $$ = OP_EQ; }
+	| NEQ_      { $$ = OP_NEQ; }
 	;
 operadorRelacional
-	: GT_
-	| LT_
-	| GTEQ_
-	| LTEQ_
+	: GT_       { $$ = OP_GT; }
+	| LT_       { $$ = OP_LT; }
+	| GTEQ_     { $$ = OP_GTEQ; }
+	| LTEQ_     { $$ = OP_LTEQ; }
 	;
 operadorAditivo 
-	: PLUS_
-	| MINUS_
+	: PLUS_     { $$ = OP_PLUS; }
+	| MINUS_    { $$ = OP_MINUS; }
 	;
 operadorMultiplicativo
-	: MULT_
-	| DIV_
+	: MULT_     { $$ = OP_MULT; }
+	| DIV_      { $$ = OP_DIV; }
 	;
 operadorUnario 
-	: PLUS_
-	| MINUS_
-	| EXCL_
+	: PLUS_     { $$ = OP_PLUS; }
+	| MINUS_    { $$ = OP_MINUS; }
+	| EXCL_     { $$ = OP_EXCL; }
 	;
 %%

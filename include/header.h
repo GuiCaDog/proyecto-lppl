@@ -10,6 +10,20 @@
 #define TRUE  1
 #define FALSE 0
 
+#define OP_EQ       0
+#define OP_NEQ      1
+#define OP_GT       2
+#define OP_LT       3
+#define OP_GTEQ     4
+#define OP_LTEQ     5
+#define OP_PLUS     6
+#define OP_MINUS    7
+#define OP_MULT     8
+#define OP_DIV      9
+#define OP_PLUS     10
+#define OP_MINUS    11
+#define OP_EXCL     12
+
 /****************************************************** Constantes simbólicas */
 #define TALLA_TIPO_SIMPLE 1 /* Talla asociada a los tipos simples */
 #define TALLA_SEGENLACES 2 /* Talla del segmento de Enlaces de Control*/
