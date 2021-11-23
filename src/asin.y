@@ -139,26 +139,83 @@ expresion
 	: expresionIgualdad
 	| expresion operadorLogico expresionIgualdad
 	;
-expresionIgualdad 
-	: expresionRelacional
-	| expresionIgualdad operadorIgualdad expresionRelacional
-	;
 /******************************** FRAN ********************************/ 
+expresionIgualdad 
+	: expresionRelacional { $$.t = $1.t; }
+	| expresionIgualdad operadorIgualdad expresionRelacional
+    {
+        $$.t = T_ERROR;
+        if ($1.t != T_ERROR && $3.t != T_ERROR) {
+            if ($1.t != $3.t)
+                yyerror("Los tipos no son equivalentes.");
+            else if ($1.t != T_LOGICO || $1.t != T_ENTERO)
+                yyerror("Las expresiones deben ser lógicas o enteros");
+            else
+                $$.t = T_LOGICO;
+        }
+    }
+	;
 expresionRelacional 
-	: expresionAditiva
+	: expresionAditiva { $$.t = $1.t; }
 	| expresionRelacional operadorRelacional expresionAditiva
+    {
+        $$.t = T_ERROR;
+        if ($1.t != T_ERROR && $3.t != T_ERROR)
+            if ($1.t != $3.t)
+                yyerror("Los tipos no son equivalentes.");
+            else if ($1.t != T_ENTERO)
+                yyerror("Las expresiones deben ser enteras");
+            else
+                $$.t = T_LOGICO;
+    }
 	;
 expresionAditiva 
-	: expresionMultiplicativa
+	: expresionMultiplicativa { $$.t = $1.t; }
 	| expresionAditiva operadorAditivo expresionMultiplicativa
+    {
+        $$.t = T_ERROR;
+        if ($1.t != T_ERROR && $3.t != T_ERROR)
+            if ($1.t != $3.t)
+                yyerror("Los tipos no son equivalentes.");
+            else if ($1.t != T_ENTERO)
+                yyerror("Las expresiones deben ser enteras");
+            else
+                $$.t = T_ENTERO;
+    }
 	;
 expresionMultiplicativa 
-	: expresionUnaria
+	: expresionUnaria { $$.t = $1.t; }
 	| expresionMultiplicativa operadorMultiplicativo expresionUnaria
+    {
+        $$.t = T_ERROR;
+        if ($1.t != T_ERROR && $3.t != T_ERROR)
+            if ($1.t != $3.t)
+                yyerror("Los tipos no son equivalentes.");
+            else if ($1.t != T_ENTERO)
+                yyerror("Las expresiones deben ser enteras.");
+            else
+                $$.t = T_ENTERO;
+    }
 	;
 expresionUnaria 
-	: expresionSufija
+	: expresionSufija { $$.t = $1.t; }
 	| operadorUnario expresionUnaria
+    {
+        $$.t = T_ERROR;
+        if ($2.t != T_ERROR)
+            if ($2.t == T_ENTERO)
+                if ($1 == OP_NOT)
+                    yyerror("El operador NOT es incompatible con enteros");
+                else
+                    $$.t = T_ENTERO;
+            else if ($2.t == T_LOGICO)
+                if ($1 != OP_SUMA && $1 != OP_RESTA)
+                    $$.t = T_LOGICO;
+                else
+                    yyerror("La suma y la resta son operadores binarios. Es incompatible con tipos logicos.");
+            else
+                yyerror("Los tipos no son equivalentes.");
+    }
 	;
 /******************************* MYKOLA *******************************/ 
 expresionSufija 
