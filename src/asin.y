@@ -287,21 +287,19 @@ expresionSufija
     {
         $$.t = T_ERROR;
         SIMB simb = obtTdS($1);
-        if(simb.t == T_ERROR) {yyerror("Identificador no declarado");}
-            
+        if(simb.t == T_ERROR) { yyerror("Identificador no declarado"); }
         else { $$.t = simb.t; }
             
     }
 	| ID_ DOT_ ID_
-    /***************************COMPLETAR**********************/
+    /***************************COMPLETAR_PARCIALMENTE**********************/
     {
         $$.t = T_ERROR;
         SIMB simb = obtTdS($1);
         if (simb.t == T_ERROR) { yyerror("Identificador no declarado."); }
         else if (simb.t != T_RECORD) { yyerror("Acceso a campo de identificador no de tipo registro."); }
-        else {
-            
-        }
+        else if (obtTdR(simb.ref, $3) == T_ERROR) { yyerror("ERROR A DEFINIR"); }
+        else { $$.t = $3.t; }
     }
 	| ID_ OBRACK_ expresion CBRACK_
     {   
@@ -321,7 +319,7 @@ expresionSufija
         $$.t = T_ERROR;
         SIMB simb = obtTdS($1);
         if (simb.t == T_ERROR) { yyerror("No existe ninguna variable con ese identificador."); }
-        INF inf = obtTdD(sim.ref);
+        INF inf = obtTdD(simb.ref);
         if (inf.tipo == T_ERROR) { yyerror("No existe ninguna función con ese identificador."); }
         else { $$.t = $inf.tipo; }
     }
