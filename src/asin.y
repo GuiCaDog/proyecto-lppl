@@ -22,8 +22,9 @@
 %token <ident> ID_ 
 %token <cent> CTE_
 %type <cent> tipoSimple
+%type <cent> operadorUnario operadorIgualdad operadorRelacional operadorAditivo operadorMultiplicativo
 %type <camp> listaCampos parametrosFormales listaParametrosFormales
-%type <exp> expresionIgualdad expresionRelacional
+%type <exp> expresionIgualdad expresionRelacional expresionAditiva expresionMultiplicativa expresionUnaria expresionSufija
 
 %%
 
@@ -162,13 +163,14 @@ expresionRelacional
 	| expresionRelacional operadorRelacional expresionAditiva
     {
         $$.t = T_ERROR;
-        if ($1.t != T_ERROR && $3.t != T_ERROR)
+        if ($1.t != T_ERROR && $3.t != T_ERROR) {
             if ($1.t != $3.t)
                 yyerror("Los tipos no son equivalentes.");
             else if ($1.t != T_ENTERO)
                 yyerror("Las expresiones deben ser enteras");
             else
                 $$.t = T_LOGICO;
+        }
     }
 	;
 expresionAditiva 
@@ -176,13 +178,14 @@ expresionAditiva
 	| expresionAditiva operadorAditivo expresionMultiplicativa
     {
         $$.t = T_ERROR;
-        if ($1.t != T_ERROR && $3.t != T_ERROR)
+        if ($1.t != T_ERROR && $3.t != T_ERROR) {
             if ($1.t != $3.t)
                 yyerror("Los tipos no son equivalentes.");
             else if ($1.t != T_ENTERO)
                 yyerror("Las expresiones deben ser enteras");
             else
                 $$.t = T_ENTERO;
+        }
     }
 	;
 expresionMultiplicativa 
@@ -190,13 +193,14 @@ expresionMultiplicativa
 	| expresionMultiplicativa operadorMultiplicativo expresionUnaria
     {
         $$.t = T_ERROR;
-        if ($1.t != T_ERROR && $3.t != T_ERROR)
+        if ($1.t != T_ERROR && $3.t != T_ERROR) {
             if ($1.t != $3.t)
                 yyerror("Los tipos no son equivalentes.");
             else if ($1.t != T_ENTERO)
                 yyerror("Las expresiones deben ser enteras.");
             else
                 $$.t = T_ENTERO;
+        }
     }
 	;
 expresionUnaria 
@@ -204,19 +208,21 @@ expresionUnaria
 	| operadorUnario expresionUnaria
     {
         $$.t = T_ERROR;
-        if ($2.t != T_ERROR)
-            if ($2.t == T_ENTERO)
+        if ($2.t != T_ERROR) {
+            if ($2.t == T_ENTERO) {
                 if ($1 == OP_NOT)
                     yyerror("El operador NOT es incompatible con enteros");
                 else
                     $$.t = T_ENTERO;
-            else if ($2.t == T_LOGICO)
-                if ($1 != OP_PLUS && $1 != OP_MINUS)
+            } else if ($2.t == T_LOGICO) {
+                if ($1 != OP_INC && $1 != OP_DEC)
                     $$.t = T_LOGICO;
                 else
                     yyerror("La suma y la resta son operadores binarios. Es incompatible con tipos logicos.");
-            else
+            } else {
                 yyerror("Los tipos no son equivalentes.");
+            }
+        }
     }
 	;
 /******************************* MYKOLA *******************************/ 
@@ -265,8 +271,8 @@ operadorMultiplicativo
 	| DIV_      { $$ = OP_DIV; }
 	;
 operadorUnario 
-	: PLUS_     { $$ = OP_PLUS; }
-	| MINUS_    { $$ = OP_MINUS; }
+	: PLUS_     { $$ = OP_INC; }
+	| MINUS_    { $$ = OP_DEC; }
 	| EXCL_     { $$ = OP_NOT; }
 	;
 %%

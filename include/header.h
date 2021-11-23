@@ -20,8 +20,8 @@
 #define OP_MINUS    7
 #define OP_MULT     8
 #define OP_DIV      9
-#define OP_PLUS     10
-#define OP_MINUS    11
+#define OP_INC      10
+#define OP_DEC      11
 #define OP_NOT      12
 
 /****************************************************** Constantes simbólicas */
