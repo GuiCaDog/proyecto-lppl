@@ -24,7 +24,7 @@
 %type <cent> tipoSimple
 %type <cent> operadorUnario operadorIgualdad operadorRelacional operadorAditivo operadorMultiplicativo
 %type <camp> listaCampos parametrosFormales listaParametrosFormales
-%type <exp> expresionIgualdad expresionRelacional expresionAditiva expresionMultiplicativa expresionUnaria expresionSufija
+%type <exp> expresion expresionIgualdad expresionRelacional expresionAditiva expresionMultiplicativa expresionUnaria expresionSufija
 
 %%
 
@@ -100,13 +100,14 @@ listaParametrosFormales
 	;
 
 /******************************** AREG ********************************/ 
-/** Solamente hay que incrementar y decrementar el nivel en el inicio y
-    fin de bloque respectivamente, ya que las declaraciones de variables
-    tienen en cuenta el nivel
- */
 bloque 
 	: OBRACE_ declaracionVariableLocal listaInstrucciones RETURN_ expresion SEMIC_ CBRACE_
-	;
+      {
+        INF inf = obtTdD(-1);
+        if (inf.tipo != T_ERROR && inf.tipo != $5.t) {
+            yyerror("Tipos de retorno no compatibles.");
+        }
+      }	;
 declaracionVariableLocal 
 	:
 	| declaracionVariableLocal declaracionVariable
@@ -124,18 +125,60 @@ instruccion
 	;
 instruccionAsignacion 
 	: ID_ ASIG_ expresion SEMIC_
+      {
+        SIMB simb = obtTdS($1); 
+        if (simb.t == T_ERROR) { yyerror("Identificador no declarado."); }
+        else if (simb.t != $3.t) { yyerror("Asignacion con tipos no compatibles."); }
+      }
 	| ID_ OBRACK_ expresion CBRACK_ ASIG_ expresion SEMIC_
+      {
+        if ($3.t != T_ENTERO) { yyerror("Indexacion con expresion no entera."); }
+        SIMB simb = obtTdS($1);
+        if (simb.t == T_ERROR) { yyerror("Identificador no declarado."); }
+        else if (simb.t != T_ARRAY) { yyerror("Indexacion en identificador no de tipo array."); }
+        else {
+            DIM dim = obtTdA(simb.ref);
+            if (dim.telem != $6.t) {
+                yyerror("Asignacion con tipos no compatibles");
+            }
+        }
+      }
 	| ID_ DOT_ ID_ ASIG_ expresion SEMIC_
+      {
+        SIMB simb = obtTdS($1); 
+        if (simb.t == T_ERROR) { yyerror("Identificador no declarado."); }
+        else if (simb.t != T_RECORD) { yyerror("Acceso a campo de identificador no de tipo registro."); }
+        else {
+            CAMP camp = obtTdR(simb.ref, $1);
+            if (camp.t != $5.t) {
+                yyerror("Asignacion con tipos no compatibles");
+            }
+        }
+      }
 	;
 instruccionEntradaSalida 
 	: READ_ OPAREN_ ID_ CPAREN_ SEMIC_
+      {
+        SIMB simb = obtTdS($3); 
+        if (simb.t == T_ERROR) { yyerror("Identificador no declarado."); }
+        else if (simb.t != T_ENTERO) { yyerror("Identificador con tipo no entero."); }
+      }
 	| PRINT_ OPAREN_ expresion CPAREN_ SEMIC_
+      {
+        if ($3.t != T_ENTERO) { yyerror("Expresion con tipo no entero."); }
+      }
 	;
 instruccionSeleccion 
 	: IF_ OPAREN_ expresion CPAREN_ instruccion ELSE_ instruccion
+      {
+        if (($3.t != T_LOGICO)) { yyerror("Expresion de if con tipo no booleano."); }
+      }
 	;
 instruccionIteracion 
 	: WHILE_ OPAREN_ expresion CPAREN_ instruccion
+      {
+        if ($3.t != T_LOGICO) { yyerror("Expresion de while no booleana."); }
+      }
 	;
 /******************************* MYKOLA *******************************/ 
 expresion 
