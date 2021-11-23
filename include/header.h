@@ -23,6 +23,8 @@
 #define OP_INC      10
 #define OP_DEC      11
 #define OP_NOT      12
+#define OP_AND      13
+#define OP_OR       14
 
 /****************************************************** Constantes simbólicas */
 #define TALLA_TIPO_SIMPLE 1 /* Talla asociada a los tipos simples */

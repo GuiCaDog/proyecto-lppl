@@ -182,8 +182,19 @@ instruccionIteracion
 	;
 /******************************* MYKOLA *******************************/ 
 expresion 
-	: expresionIgualdad
+	: expresionIgualdad { $$.t = $1.t; }
 	| expresion operadorLogico expresionIgualdad
+    {
+        $$.t = T_ERROR;
+        if ($1.t != T_ERROR && $3.t != T_ERROR) {
+            if($1.t != $3.t)
+                yyerror("Los tipos no son equivalentes");
+            else if ($1.t != T_LOGICO)
+                yyerror("Las expresion deber ser lógicas");
+            else
+                $$.t = T_LOGICO;
+        }
+    }
 	;
 /******************************** FRAN ********************************/ 
 expresionIgualdad 
@@ -270,29 +281,69 @@ expresionUnaria
 	;
 /******************************* MYKOLA *******************************/ 
 expresionSufija 
-	: constante 
-	| OPAREN_ expresion CPAREN_
-	| ID_
+	: constante {$$.t = $1.t }
+	| OPAREN_ expresion CPAREN_ {$$.t = $2.t; }
+	| ID_ 
+    {
+        $$.t = T_ERROR;
+        SIMB simb = obtTdS($1);
+        if(simb.t == T_ERROR) {yyerror("Identificador no declarado");}
+            
+        else { $$.t = simb.t; }
+            
+    }
 	| ID_ DOT_ ID_
+    /***************************COMPLETAR**********************/
+    {
+        $$.t = T_ERROR;
+        SIMB simb = obtTdS($1);
+        if (simb.t == T_ERROR) { yyerror("Identificador no declarado."); }
+        else if (simb.t != T_RECORD) { yyerror("Acceso a campo de identificador no de tipo registro."); }
+        else {
+            
+        }
+    }
 	| ID_ OBRACK_ expresion CBRACK_
+    {   
+        $$.t = T_ERROR;
+        if ($3.t != T_ENTERO) { yyerror("Indexacion con expresion no entera."); }
+        SIMB simb = obtTdS($1);
+        if (simb.t == T_ERROR) { yyerror("Identificador no declarado."); }
+        else if (simb.t != T_ARRAY) { yyerror("Acceso a contenido de identificador no de tipo array."); }
+        else {
+            DIM dim = obtTdA(simb.ref);
+            $$.t = $dim.telem;
+            }
+    }
 	| ID_ OPAREN_ parametrosActuales CPAREN_
+    /***********************COMPLETAR*****************/
+    {
+        $$.t = T_ERROR;
+        SIMB simb = obtTdS($1);
+        if (simb.t == T_ERROR) { yyerror("No existe ninguna variable con ese identificador."); }
+        INF inf = obtTdD(sim.ref);
+        if (inf.tipo == T_ERROR) { yyerror("No existe ninguna función con ese identificador."); }
+        else { $$.t = $inf.tipo; }
+    }
 	;
 constante 
-	: CTE_
-	| TRUE_
-	| FALSE_
+	: CTE_ {$$.t = T_ENTERO}
+	| TRUE_ {$$.t = T_LOGICO}
+	| FALSE_ {$$.t = T_LOGICO}
 	;
 parametrosActuales 
-	:
-	| listaParametrosActuales
+	: {$$.t = T_VACIO;}
+	| listaParametrosActuales {$$.t = $1.t;}
 	;
 listaParametrosActuales 
-	: expresion
+	: expresion { $$.t = $1.t;}
 	| expresion COMMA_ listaParametrosActuales
+    /**********************COMPLETAR**************/
+    {}
 	;
 operadorLogico
-	: AND_
-	| OR_
+	: AND_      { $$ = OP_AND; }
+	| OR_       { $$ = OP_OR;  }
 	;
 /******************************** FRAN ********************************/ 
 operadorIgualdad
