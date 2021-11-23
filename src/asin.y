@@ -81,7 +81,7 @@ declaracionFuncion
           OPAREN_ parametrosFormales CPAREN_  
           { insTdS($<ident>2, FUNCION, $<cent>1, niv-1, dvar, $<camp>5.refe); } 
           bloque 
-          { mostrarTdS(); descargaContexto(niv);  niv-=1; dvar = $<cent>3; }
+          { if(verTdS) mostrarTdS(); descargaContexto(niv);  niv-=1; dvar = $<cent>3; }
 	;
 parametrosFormales 
 	: { $$.refe = insTdD(-1, T_VACIO); } 
