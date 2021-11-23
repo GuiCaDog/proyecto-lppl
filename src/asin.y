@@ -215,7 +215,7 @@ expresionUnaria
                 else
                     $$.t = T_ENTERO;
             } else if ($2.t == T_LOGICO) {
-                if ($1 != OP_RESTA && $1 != OP_SUMA)
+                if ($1 != OP_MINUS && $1 != OP_PLUS)
                     $$.t = T_LOGICO;
                 else
                     yyerror("La suma y la resta son operadores binarios. Es incompatible con tipos logicos.");
