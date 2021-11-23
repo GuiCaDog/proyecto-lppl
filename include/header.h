@@ -64,5 +64,9 @@ typedef struct func /*Atributo para símbolos con más de 1 atributo*/
   int  aux;
 } FUNC;
 
+typedef struct exp /*Atributo para símbolos con más de 1 atributo*/
+{ 
+  int  t;
+} EXP;
 #endif  /* _HEADER_H */
 /*****************************************************************************/

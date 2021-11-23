@@ -10,6 +10,7 @@
   ATR atr;
   CAMPO camp;
   FUNC func;
+  EXP exp;
 }
 
 %token INTEGER_ BOOLEAN_ STRUCT_ RETURN_ READ_ PRINT_
@@ -22,6 +23,7 @@
 %token <cent> CTE_
 %type <cent> tipoSimple
 %type <camp> listaCampos parametrosFormales listaParametrosFormales
+%type <exp> expresionIgualdad expresionRelacional
 
 %%
 
