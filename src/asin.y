@@ -1,5 +1,6 @@
 %{
 	#include <stdio.h>
+	#include <string.h>
 	#include "libtds.h"
 	#include "header.h"
 %}
@@ -80,8 +81,13 @@ declaracionFuncion
 	: tipoSimple ID_  
           { niv+=1; cargaContexto(niv); $<cent>$ = dvar; dvar = 0; }
           OPAREN_ parametrosFormales CPAREN_  
-          { if( ! insTdS($<ident>2, FUNCION, $<cent>1, niv-1, dvar, $<camp>5.refe))
-	       yyerror("Identificador de funcion repetido"); } 
+          { if( ! insTdS($2, FUNCION, $1, niv-1, -1, $5.refe)) {
+               if(strcmp($2, "main") == 0)
+	         yyerror("Programa con mas de una funcion main"); 
+               else
+	         yyerror("Identificador de funcion repetido"); 
+              }
+          } 
           bloque 
           { if(verTdS) mostrarTdS(); descargaContexto(niv);  niv-=1; dvar = $<cent>3; }
 	;
