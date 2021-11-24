@@ -149,7 +149,7 @@ instruccionAsignacion
       }
 	| ID_ DOT_ ID_ ASIG_ expresion SEMIC_
       {
-        if ($1.t != T_ERROR) {
+        if (1) { //$1.t != T_ERROR
             SIMB simb = obtTdS($1); 
             if (simb.t != T_ERROR) {
                 if (simb.t != T_RECORD) { yyerror("Acceso a campo de identificador no de tipo registro."); }
@@ -166,7 +166,7 @@ instruccionAsignacion
 instruccionEntradaSalida 
 	: READ_ OPAREN_ ID_ CPAREN_ SEMIC_
       {
-        if ($3.t != T_ERROR) {
+        if (1) { //$3 != T_ERROR
             SIMB simb = obtTdS($3); 
             if (simb.t != T_ERROR) {
                 if (simb.t != T_ENTERO) { yyerror("Identificador con tipo no entero."); }
@@ -294,13 +294,13 @@ expresionSufija
 	: constante {$$.t = $1.t; }
 	| OPAREN_ expresion CPAREN_ {$$.t = $2.t; }
 	| ID_ 
-    /*
-    {
-        $$.t = T_ERROR;
-        SIMB simb = obtTdS($1);
-        if(simb.t == T_ERROR) { yyerror("Identificador no declarado"); }
-        else { $$.t = simb.t; }
-    */       
+          {
+            $$.t = T_ERROR;
+            SIMB simb = obtTdS($1);
+            if(simb.t == T_ERROR) { yyerror("Identificador no declarado"); }
+            else { $$.t = simb.t; }
+          }
+        | ID_ DOT_ ID_
     /***************************COMPLETAR_PARCIALMENTE**********************/
     {
         $$.t = T_ERROR;
@@ -333,7 +333,11 @@ expresionSufija
         if (simb.t == T_ERROR) { yyerror("No existe ninguna variable con ese identificador."); }
         INF inf = obtTdD(simb.ref);
         if (inf.tipo == T_ERROR) { yyerror("No existe ninguna función con ese identificador."); }
-        else { $$.t = inf.tipo; }
+        else if (inf.tsp != $3.t*TALLA_TIPO_SIMPLE) {
+	  yyerror("Número incorrecto de parametros actuales");
+        }
+        else 
+        { $$.t = inf.tipo; }
     }
 	;
 constante 
@@ -342,14 +346,13 @@ constante
 	| FALSE_ { $$.t = T_LOGICO; }
 	;
 parametrosActuales 
-	: {$$.t = T_VACIO;}
+	: {$$.t = 0;}
 	| listaParametrosActuales {$$.t = $1.t;}
 	;
 listaParametrosActuales 
-	: expresion { $$.t = $1.t;}
+	: expresion { $$.t = 1;}
 	| expresion COMMA_ listaParametrosActuales
-    /**********************COMPLETAR**************/
-    {}
+          { $$.t = $3.t + 1; }
 	;
 operadorLogico
 	: AND_      { $$ = OP_AND; }
