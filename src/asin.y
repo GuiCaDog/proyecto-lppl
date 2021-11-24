@@ -22,9 +22,9 @@
 %token <ident> ID_ 
 %token <cent> CTE_
 %type <cent> tipoSimple
-%type <cent> operadorUnario operadorIgualdad operadorRelacional operadorAditivo operadorMultiplicativo
+%type <cent> operadorUnario operadorIgualdad operadorRelacional operadorAditivo operadorMultiplicativo operadorLogico
 %type <camp> listaCampos parametrosFormales listaParametrosFormales
-%type <exp> expresion expresionIgualdad expresionRelacional expresionAditiva expresionMultiplicativa expresionUnaria expresionSufija
+%type <exp> expresion expresionIgualdad expresionRelacional expresionAditiva expresionMultiplicativa expresionUnaria expresionSufija constante parametrosActuales listaParametrosActuales
 
 %%
 
@@ -127,31 +127,38 @@ instruccionAsignacion
 	: ID_ ASIG_ expresion SEMIC_
       {
         SIMB simb = obtTdS($1); 
-        if (simb.t == T_ERROR) { yyerror("Identificador no declarado."); }
-        else if (simb.t != $3.t) { yyerror("Asignacion con tipos no compatibles."); }
+        if (simb.t != T_ERROR) {
+            if (simb.t != $3.t) { yyerror("Asignacion con tipos no compatibles."); }
+        }
       }
 	| ID_ OBRACK_ expresion CBRACK_ ASIG_ expresion SEMIC_
       {
-        if ($3.t != T_ENTERO) { yyerror("Indexacion con expresion no entera."); }
-        SIMB simb = obtTdS($1);
-        if (simb.t == T_ERROR) { yyerror("Identificador no declarado."); }
-        else if (simb.t != T_ARRAY) { yyerror("Indexacion en identificador no de tipo array."); }
-        else {
-            DIM dim = obtTdA(simb.ref);
-            if (dim.telem != $6.t) {
-                yyerror("Asignacion con tipos no compatibles");
+        if ($3.t != T_ERROR && $3.t != T_ENTERO) { yyerror("Indexacion con expresion no entera."); }
+        else if ($3.t != T_ERROR) {
+            SIMB simb = obtTdS($1);
+            if (simb.t != T_ERROR) {
+                if (simb.t != T_ARRAY) { yyerror("Indexacion en identificador no de tipo array."); }
+                else {
+                    DIM dim = obtTdA(simb.ref);
+                    if (dim.telem != $6.t) {
+                        yyerror("Asignacion con tipos no compatibles");
+                    }
+                }
             }
         }
       }
 	| ID_ DOT_ ID_ ASIG_ expresion SEMIC_
       {
-        SIMB simb = obtTdS($1); 
-        if (simb.t == T_ERROR) { yyerror("Identificador no declarado."); }
-        else if (simb.t != T_RECORD) { yyerror("Acceso a campo de identificador no de tipo registro."); }
-        else {
-            CAMP camp = obtTdR(simb.ref, $1);
-            if (camp.t != $5.t) {
-                yyerror("Asignacion con tipos no compatibles");
+        if ($1.t != T_ERROR) {
+            SIMB simb = obtTdS($1); 
+            if (simb.t != T_ERROR) {
+                if (simb.t != T_RECORD) { yyerror("Acceso a campo de identificador no de tipo registro."); }
+                else {
+                    CAMP camp = obtTdR(simb.ref, $1);
+                    if (camp.t != $5.t) {
+                        yyerror("Asignacion con tipos no compatibles");
+                    }
+                }
             }
         }
       }
@@ -159,25 +166,28 @@ instruccionAsignacion
 instruccionEntradaSalida 
 	: READ_ OPAREN_ ID_ CPAREN_ SEMIC_
       {
-        SIMB simb = obtTdS($3); 
-        if (simb.t == T_ERROR) { yyerror("Identificador no declarado."); }
-        else if (simb.t != T_ENTERO) { yyerror("Identificador con tipo no entero."); }
+        if ($3.t != T_ERROR) {
+            SIMB simb = obtTdS($3); 
+            if (simb.t != T_ERROR) {
+                if (simb.t != T_ENTERO) { yyerror("Identificador con tipo no entero."); }
+            }
+        }
       }
 	| PRINT_ OPAREN_ expresion CPAREN_ SEMIC_
       {
-        if ($3.t != T_ENTERO) { yyerror("Expresion con tipo no entero."); }
+        if ($3.t != T_ERROR && $3.t != T_ENTERO) { yyerror("Expresion con tipo no entero."); }
       }
 	;
 instruccionSeleccion 
 	: IF_ OPAREN_ expresion CPAREN_ instruccion ELSE_ instruccion
       {
-        if (($3.t != T_LOGICO)) { yyerror("Expresion de if con tipo no booleano."); }
+        if ($3.t != T_ERROR && $3.t != T_LOGICO) { yyerror("Expresion de if con tipo no booleano."); }
       }
 	;
 instruccionIteracion 
 	: WHILE_ OPAREN_ expresion CPAREN_ instruccion
       {
-        if ($3.t != T_LOGICO) { yyerror("Expresion de while no booleana."); }
+        if ($3.t != T_ERROR && $3.t != T_LOGICO) { yyerror("Expresion de while no booleana."); }
       }
 	;
 /******************************* MYKOLA *******************************/ 
@@ -281,25 +291,27 @@ expresionUnaria
 	;
 /******************************* MYKOLA *******************************/ 
 expresionSufija 
-	: constante {$$.t = $1.t }
+	: constante {$$.t = $1.t; }
 	| OPAREN_ expresion CPAREN_ {$$.t = $2.t; }
 	| ID_ 
+    /*
     {
         $$.t = T_ERROR;
         SIMB simb = obtTdS($1);
         if(simb.t == T_ERROR) { yyerror("Identificador no declarado"); }
         else { $$.t = simb.t; }
-            
-    }
-	| ID_ DOT_ ID_
+    */       
     /***************************COMPLETAR_PARCIALMENTE**********************/
     {
         $$.t = T_ERROR;
         SIMB simb = obtTdS($1);
         if (simb.t == T_ERROR) { yyerror("Identificador no declarado."); }
         else if (simb.t != T_RECORD) { yyerror("Acceso a campo de identificador no de tipo registro."); }
-        else if (obtTdR(simb.ref, $3) == T_ERROR) { yyerror("ERROR A DEFINIR"); }
-        else { $$.t = $3.t; }
+        else {
+            CAMP camp = obtTdR(simb.ref, $3);
+            if (camp.t == T_ERROR) { yyerror("ERROR A DEFINIR"); }
+            else { $$.t = camp.t; }
+        }
     }
 	| ID_ OBRACK_ expresion CBRACK_
     {   
@@ -310,7 +322,7 @@ expresionSufija
         else if (simb.t != T_ARRAY) { yyerror("Acceso a contenido de identificador no de tipo array."); }
         else {
             DIM dim = obtTdA(simb.ref);
-            $$.t = $dim.telem;
+            $$.t = dim.telem;
             }
     }
 	| ID_ OPAREN_ parametrosActuales CPAREN_
@@ -321,13 +333,13 @@ expresionSufija
         if (simb.t == T_ERROR) { yyerror("No existe ninguna variable con ese identificador."); }
         INF inf = obtTdD(simb.ref);
         if (inf.tipo == T_ERROR) { yyerror("No existe ninguna función con ese identificador."); }
-        else { $$.t = $inf.tipo; }
+        else { $$.t = inf.tipo; }
     }
 	;
 constante 
-	: CTE_ {$$.t = T_ENTERO}
-	| TRUE_ {$$.t = T_LOGICO}
-	| FALSE_ {$$.t = T_LOGICO}
+	: CTE_ { $$.t = T_ENTERO; }
+	| TRUE_ { $$.t = T_LOGICO; }
+	| FALSE_ { $$.t = T_LOGICO; }
 	;
 parametrosActuales 
 	: {$$.t = T_VACIO;}
