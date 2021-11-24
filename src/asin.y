@@ -7,9 +7,7 @@
 %union {
   int cent ;
   char *ident ;
-  ATR atr;
   CAMPO camp;
-  FUNC func;
   EXP exp;
 }
 
@@ -21,8 +19,7 @@
 %token ASIG_ COMMA_ DOT_
 %token <ident> ID_ 
 %token <cent> CTE_
-%type <cent> tipoSimple
-%type <cent> operadorUnario operadorIgualdad operadorRelacional operadorAditivo operadorMultiplicativo operadorLogico
+%type <cent> tipoSimple operadorUnario operadorIgualdad operadorRelacional operadorAditivo operadorMultiplicativo operadorLogico
 %type <camp> listaCampos parametrosFormales listaParametrosFormales
 %type <exp> expresion expresionIgualdad expresionRelacional expresionAditiva expresionMultiplicativa expresionUnaria expresionSufija constante parametrosActuales listaParametrosActuales
 
