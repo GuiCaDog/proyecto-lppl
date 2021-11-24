@@ -70,16 +70,21 @@ tipoSimple
 listaCampos 
 	: tipoSimple ID_ SEMIC_
 	  { $$.refe = insTdR(-1, $2, $1, 0);
+	    if ( $$.refe == -1) 
+		yyerror("Campo repetido");
             $$.talla = TALLA_TIPO_SIMPLE; }
 	| listaCampos tipoSimple ID_ SEMIC_
 	  { $$.refe = insTdR($1.refe, $3, $2, $1.talla);
+	    if ( $$.refe == -1) 
+		yyerror("Campo repetido");
             $$.talla = $1.talla + TALLA_TIPO_SIMPLE; }
 	;
 declaracionFuncion 
 	: tipoSimple ID_  
           { niv+=1; cargaContexto(niv); $<cent>$ = dvar; dvar = 0; }
           OPAREN_ parametrosFormales CPAREN_  
-          { insTdS($<ident>2, FUNCION, $<cent>1, niv-1, dvar, $<camp>5.refe); } 
+          { if( ! insTdS($<ident>2, FUNCION, $<cent>1, niv-1, dvar, $<camp>5.refe))
+	       yyerror("Identificador de funcion repetido"); } 
           bloque 
           { if(verTdS) mostrarTdS(); descargaContexto(niv);  niv-=1; dvar = $<cent>3; }
 	;
@@ -92,11 +97,15 @@ listaParametrosFormales
 	: tipoSimple ID_
 	  { $$.talla = TALLA_SEGENLACES + TALLA_TIPO_SIMPLE;
             $$.refe = insTdD(-1, $1);
-            insTdS($2, PARAMETRO, $1, niv, -$$.talla, -1); }
+            if( ! insTdS($2, PARAMETRO, $1, niv, -$$.talla, -1))
+	       yyerror("Parametro repetido"); 
+          }
 	| tipoSimple ID_ COMMA_ listaParametrosFormales
 	  { $$.talla = $4.talla + TALLA_TIPO_SIMPLE;
             $$.refe = insTdD($4.refe, $1);
-            insTdS($2, PARAMETRO, $1, niv, -$$.talla, -1); }
+            if( ! insTdS($2, PARAMETRO, $1, niv, -$$.talla, -1))
+	       yyerror("Parametro repetido"); 
+          }
 	;
 
 /******************************** AREG ********************************/ 
