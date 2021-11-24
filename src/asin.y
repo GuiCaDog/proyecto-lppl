@@ -7,9 +7,7 @@
 %union {
   int cent ;
   char *ident ;
-  ATR atr;
   CAMPO camp;
-  FUNC func;
   EXP exp;
 }
 
@@ -21,8 +19,7 @@
 %token ASIG_ COMMA_ DOT_
 %token <ident> ID_ 
 %token <cent> CTE_
-%type <cent> tipoSimple
-%type <cent> operadorUnario operadorIgualdad operadorRelacional operadorAditivo operadorMultiplicativo operadorLogico
+%type <cent> tipoSimple operadorUnario operadorIgualdad operadorRelacional operadorAditivo operadorMultiplicativo operadorLogico
 %type <camp> listaCampos parametrosFormales listaParametrosFormales
 %type <exp> expresion expresionIgualdad expresionRelacional expresionAditiva expresionMultiplicativa expresionUnaria expresionSufija constante parametrosActuales listaParametrosActuales
 
@@ -136,16 +133,16 @@ instruccionAsignacion
 	: ID_ ASIG_ expresion SEMIC_
       {
         SIMB simb = obtTdS($1); 
-        if (simb.t != T_ERROR) {
+        if (simb.t != T_ERROR && $3.t != T_ERROR) {
             if (simb.t != $3.t) { yyerror("Asignacion con tipos no compatibles."); }
         }
       }
 	| ID_ OBRACK_ expresion CBRACK_ ASIG_ expresion SEMIC_
       {
         if ($3.t != T_ERROR && $3.t != T_ENTERO) { yyerror("Indexacion con expresion no entera."); }
-        else if ($3.t != T_ERROR) {
+        else {
             SIMB simb = obtTdS($1);
-            if (simb.t != T_ERROR) {
+            if (simb.t != T_ERROR && $3.t != T_ERROR) {
                 if (simb.t != T_ARRAY) { yyerror("Indexacion en identificador no de tipo array."); }
                 else {
                     DIM dim = obtTdA(simb.ref);
@@ -158,15 +155,13 @@ instruccionAsignacion
       }
 	| ID_ DOT_ ID_ ASIG_ expresion SEMIC_
       {
-        if (1) { //$1.t != T_ERROR
-            SIMB simb = obtTdS($1); 
-            if (simb.t != T_ERROR) {
-                if (simb.t != T_RECORD) { yyerror("Acceso a campo de identificador no de tipo registro."); }
-                else {
-                    CAMP camp = obtTdR(simb.ref, $1);
-                    if (camp.t != $5.t) {
-                        yyerror("Asignacion con tipos no compatibles");
-                    }
+        SIMB simb = obtTdS($1); 
+        if (simb.t != T_ERROR && $5.t != T_ERROR) {
+            if (simb.t != T_RECORD) { yyerror("Acceso a campo de identificador no de tipo registro."); }
+            else {
+                CAMP camp = obtTdR(simb.ref, $1);
+                if (camp.t != $5.t) {
+                    yyerror("Asignacion con tipos no compatibles");
                 }
             }
         }
@@ -175,13 +170,11 @@ instruccionAsignacion
 instruccionEntradaSalida 
 	: READ_ OPAREN_ ID_ CPAREN_ SEMIC_
       {
-        if (1) { //$3 != T_ERROR
-            SIMB simb = obtTdS($3); 
-            if (simb.t != T_ERROR) {
-                if (simb.t != T_ENTERO) { yyerror("Identificador con tipo no entero."); }
-            }
+        SIMB simb = obtTdS($3); 
+        if (simb.t != T_ERROR) {
+            if (simb.t != T_ENTERO) { yyerror("Identificador con tipo no entero."); }
         }
-      }
+  }
 	| PRINT_ OPAREN_ expresion CPAREN_ SEMIC_
       {
         if ($3.t != T_ERROR && $3.t != T_ENTERO) { yyerror("Expresion con tipo no entero."); }

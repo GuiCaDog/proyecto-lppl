@@ -46,27 +46,13 @@ extern int verTdS; /* Flag para saber si mostrar la TdS */
 extern int dvar; /* Desplazamiento en el Segmento de Variables */
 extern int niv; /* Nivel de anidamiento "global" o "local" */
 
-typedef struct atr /*Atributo para símbolos con más de 1 atributo*/
-{ 
-  char *name;
-  int  refe;
-  int  type;
-  int  talla;
-  int  desp;
-} ATR;
-
-typedef struct camp /*Atributo para símbolos con más de 1 atributo*/
+typedef struct camp /* Tipo de atributo para listas */
 { 
   int  refe;
   int  talla;
 } CAMPO;
 
-typedef struct func /*Atributo para símbolos con más de 1 atributo*/
-{ 
-  int  aux;
-} FUNC;
-
-typedef struct exp /*Atributo para símbolos con más de 1 atributo*/
+typedef struct exp /* Tipo de atributo para expresiones*/
 { 
   int  t;
 } EXP;
