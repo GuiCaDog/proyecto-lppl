@@ -309,7 +309,7 @@ expresionSufija
             else { $$.t = simb.t; }
           }
         | ID_ DOT_ ID_
-    /***************************COMPLETAR_PARCIALMENTE**********************/
+        /*********************CAMBIAR MENSAJE ERROR**********************/
     {
         $$.t = T_ERROR;
         SIMB simb = obtTdS($1);
@@ -317,7 +317,7 @@ expresionSufija
         else if (simb.t != T_RECORD) { yyerror("Acceso a campo de identificador no de tipo registro."); }
         else {
             CAMP camp = obtTdR(simb.ref, $3);
-            if (camp.t == T_ERROR) { yyerror("ERROR A DEFINIR"); }
+            if (camp.t == T_ERROR) { yyerror("ERROR A DEFINIR"); }   
             else { $$.t = camp.t; }
         }
     }
@@ -341,9 +341,8 @@ expresionSufija
         if (simb.t == T_ERROR) { yyerror("No existe ninguna variable con ese identificador."); }
         INF inf = obtTdD(simb.ref);
         if (inf.tipo == T_ERROR) { yyerror("No existe ninguna función con ese identificador."); }
-        else if (inf.tsp != $3.t*TALLA_TIPO_SIMPLE) {
-	  yyerror("Número incorrecto de parametros actuales");
-        }
+        else if (inf.tsp != $3.t * TALLA_TIPO_SIMPLE) { yyerror("Número incorrecto de parametros actuales"); }
+        else if ( ! cmpDom()) /******COMPLETAR******/
         else 
         { $$.t = inf.tipo; }
     }
