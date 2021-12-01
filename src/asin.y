@@ -150,7 +150,8 @@ instruccionAsignacion
 	: ID_ ASIG_ expresion SEMIC_
       {
         SIMB simb = obtTdS($1); 
-        if (simb.t != T_ERROR && $3.t != T_ERROR) {
+        if (simb.t == T_ERROR) yyerror("Identificador no declarado.");
+        else if ($3.t != T_ERROR) {
             if (simb.t != $3.t) { yyerror("Asignacion con tipos no compatibles."); }
         }
       }
@@ -199,15 +200,17 @@ instruccionEntradaSalida
 	;
 instruccionSeleccion 
 	: IF_ OPAREN_ expresion 
-          { if ($3.t != T_ERROR && $3.t != T_LOGICO) { yyerror("Expresion de if con tipo no booleano."); } 
-          }
+      { 
+        if ($3.t != T_ERROR && $3.t != T_LOGICO) { yyerror("Expresion de if con tipo no booleano."); } 
+      }
 	  CPAREN_ instruccion ELSE_ instruccion
 	;
 instruccionIteracion 
-	: WHILE_ OPAREN_ expresion CPAREN_ instruccion
+	: WHILE_ OPAREN_ expresion 
       {
         if ($3.t != T_ERROR && $3.t != T_LOGICO) { yyerror("Expresion de while no booleana."); }
       }
+      CPAREN_ instruccion
 	;
 /******************************* MYKOLA *******************************/ 
 expresion 
