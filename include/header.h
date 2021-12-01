@@ -46,11 +46,11 @@ extern int verTdS; /* Flag para saber si mostrar la TdS */
 extern int dvar; /* Desplazamiento en el Segmento de Variables */
 extern int niv; /* Nivel de anidamiento "global" o "local" */
 
-typedef struct camp /* Tipo de atributo para listas */
+typedef struct lista/* Tipo de atributo para listas */
 { 
   int  refe;
   int  talla;
-} CAMPO;
+} LISTA;
 
 typedef struct exp /* Tipo de atributo para expresiones*/
 { 

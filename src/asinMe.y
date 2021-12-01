@@ -8,7 +8,7 @@
 %union {
   int cent ;
   char *ident ;
-  LISTA lista;
+  CAMPO camp;
   EXP exp;
 }
 
@@ -21,8 +21,8 @@
 %token <ident> ID_ 
 %token <cent> CTE_
 %type <cent> tipoSimple operadorUnario operadorIgualdad operadorRelacional operadorAditivo operadorMultiplicativo operadorLogico
-%type <lista> listaCampos parametrosFormales listaParametrosFormales parametrosActuales listaParametrosActuales
-%type <exp> expresion expresionIgualdad expresionRelacional expresionAditiva expresionMultiplicativa expresionUnaria expresionSufija constante 
+%type <camp> listaCampos parametrosFormales listaParametrosFormales
+%type <exp> expresion expresionIgualdad expresionRelacional expresionAditiva expresionMultiplicativa expresionUnaria expresionSufija constante parametrosActuales listaParametrosActuales
 
 %%
 
@@ -309,7 +309,7 @@ expresionSufija
             else { $$.t = simb.t; }
           }
         | ID_ DOT_ ID_
-        /*********************CAMBIAR MENSAJE ERROR**********************/
+    /***************************COMPLETAR_PARCIALMENTE**********************/
     {
         $$.t = T_ERROR;
         SIMB simb = obtTdS($1);
@@ -317,7 +317,7 @@ expresionSufija
         else if (simb.t != T_RECORD) { yyerror("Acceso a campo de identificador no de tipo registro."); }
         else {
             CAMP camp = obtTdR(simb.ref, $3);
-            if (camp.t == T_ERROR) { yyerror("ERROR A DEFINIR"); }   
+            if (camp.t == T_ERROR) { yyerror("ERROR A DEFINIR"); }
             else { $$.t = camp.t; }
         }
     }
@@ -341,8 +341,9 @@ expresionSufija
         if (simb.t == T_ERROR) { yyerror("No existe ninguna variable con ese identificador."); }
         INF inf = obtTdD(simb.ref);
         if (inf.tipo == T_ERROR) { yyerror("No existe ninguna función con ese identificador."); }
-        else if ( ! cmpDom(simb.ref, $3.refe)) /******COMPLETAR******/
-	   yyerror("Dominios incompatibles");
+        else if (inf.tsp != $3.t*TALLA_TIPO_SIMPLE) {
+	  yyerror("Número incorrecto de parametros actuales");
+        }
         else 
         { $$.t = inf.tipo; }
     }
@@ -353,13 +354,13 @@ constante
 	| FALSE_ { $$.t = T_LOGICO; }
 	;
 parametrosActuales 
-	: {$$.refe = insTdD(-1, T_VACIO);}
-	| listaParametrosActuales {$$.refe = $1.refe;}
+	: {$$.t = 0;}
+	| listaParametrosActuales {$$.t = $1.t;}
 	;
 listaParametrosActuales 
-	: expresion { $$.refe = insTdD(-1, $1.t); }
+	: expresion { $$.t = 1;}
 	| expresion COMMA_ listaParametrosActuales
-          { $$.refe = insTdD($3.refe, $1.t); }
+          { $$.t = $3.t + 1; }
 	;
 operadorLogico
 	: AND_      { $$ = OP_AND; }
