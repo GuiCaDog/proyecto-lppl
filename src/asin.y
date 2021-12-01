@@ -20,7 +20,7 @@
 %token ASIG_ COMMA_ DOT_
 %token <ident> ID_ 
 %token <cent> CTE_
-%type <cent> tipoSimple operadorUnario operadorIgualdad operadorRelacional operadorAditivo operadorMultiplicativo operadorLogico
+%type <cent> tipoSimple operadorUnario operadorIgualdad operadorRelacional operadorAditivo operadorMultiplicativo operadorLogico declaracionFuncion declaracion listaDeclaraciones
 %type <lista> listaCampos parametrosFormales listaParametrosFormales parametrosActuales listaParametrosActuales
 %type <exp> expresion expresionIgualdad expresionRelacional expresionAditiva expresionMultiplicativa expresionUnaria expresionSufija constante 
 
@@ -29,14 +29,21 @@
 /******************************* GUILLEM *******************************/ 
 programa
 	: { dvar = 0; niv = 0; cargaContexto(niv); } listaDeclaraciones 
+          { if($2 == 0) yyerror("Programa sin main declarado");
+            else if($2 == -2) yyerror("Programa con mas de una funcion main");
+          } 
 	;
 listaDeclaraciones
-	: declaracion
-	| listaDeclaraciones declaracion
+	: declaracion { $$ = $1; } 
+	| listaDeclaraciones declaracion 
+          { 
+          if($1 == -1 && $2 == -1) $$ = -2;
+          else $$ = $1 + $2; 
+          } 
 	;
 declaracion 
-	: declaracionVariable
-	| declaracionFuncion
+	: declaracionVariable { $$ = 0; }
+	| declaracionFuncion { $$ = $1; }
 	;
 declaracionVariable 
 	: tipoSimple ID_ SEMIC_
@@ -82,14 +89,14 @@ declaracionFuncion
           { niv+=1; cargaContexto(niv); $<cent>$ = dvar; dvar = 0; }
           OPAREN_ parametrosFormales CPAREN_  
           { if( ! insTdS($2, FUNCION, $1, niv-1, -1, $5.refe)) {
-               if(strcmp($2, "main") == 0)
-	         yyerror("Programa con mas de una funcion main"); 
-               else
 	         yyerror("Identificador de funcion repetido"); 
               }
           } 
           bloque 
-          { if(verTdS) mostrarTdS(); descargaContexto(niv);  niv-=1; dvar = $<cent>3; }
+          {  if(strcmp($2, "main") == 0) $$ = -1;
+             else $$ = 0;
+             if(verTdS) mostrarTdS(); descargaContexto(niv);  niv-=1; dvar = $<cent>3; 
+          }
 	;
 parametrosFormales 
 	: { $$.refe = insTdD(-1, T_VACIO); } 
@@ -116,7 +123,11 @@ bloque
 	: OBRACE_ declaracionVariableLocal listaInstrucciones RETURN_ expresion SEMIC_ CBRACE_
       {
         INF inf = obtTdD(-1);
-        if (inf.tipo != T_ERROR && inf.tipo != $5.t) {
+        if (inf.tipo == T_ERROR) {
+
+           yyerror("Error en la declaracion de la funcion.");
+        }
+        else if (inf.tipo != $5.t) {
             yyerror("Tipos de retorno no compatibles.");
         }
       }	;
@@ -187,10 +198,10 @@ instruccionEntradaSalida
       }
 	;
 instruccionSeleccion 
-	: IF_ OPAREN_ expresion CPAREN_ instruccion ELSE_ instruccion
-      {
-        if ($3.t != T_ERROR && $3.t != T_LOGICO) { yyerror("Expresion de if con tipo no booleano."); }
-      }
+	: IF_ OPAREN_ expresion 
+          { if ($3.t != T_ERROR && $3.t != T_LOGICO) { yyerror("Expresion de if con tipo no booleano."); } 
+          }
+	  CPAREN_ instruccion ELSE_ instruccion
 	;
 instruccionIteracion 
 	: WHILE_ OPAREN_ expresion CPAREN_ instruccion
