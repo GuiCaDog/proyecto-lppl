@@ -160,7 +160,7 @@ instruccionAsignacion
         if ($3.t != T_ERROR && $3.t != T_ENTERO) { yyerror("Indexacion con expresion no entera."); }
         else {
             SIMB simb = obtTdS($1);
-            if (simb.t != T_ERROR && $3.t != T_ERROR) {
+            if (simb.t != T_ERROR && $3.t != T_ERROR && $6.t != T_ERROR) {
                 if (simb.t != T_ARRAY) { yyerror("Indexacion en identificador no de tipo array."); }
                 else {
                     DIM dim = obtTdA(simb.ref);
@@ -323,7 +323,6 @@ expresionSufija
             else { $$.t = simb.t; }
           }
         | ID_ DOT_ ID_
-        /*********************CAMBIAR MENSAJE ERROR**********************/
     {
         $$.t = T_ERROR;
         SIMB simb = obtTdS($1);
@@ -331,7 +330,7 @@ expresionSufija
         else if (simb.t != T_RECORD) { yyerror("Acceso a campo de identificador no de tipo registro."); }
         else {
             CAMP camp = obtTdR(simb.ref, $3);
-            if (camp.t == T_ERROR) { yyerror("ERROR A DEFINIR"); }   
+            if (camp.t == T_ERROR) { yyerror("Acceso a campo no declarado."); }   
             else { $$.t = camp.t; }
         }
     }
@@ -348,15 +347,14 @@ expresionSufija
             }
     }
 	| ID_ OPAREN_ parametrosActuales CPAREN_
-    /***********************COMPLETAR*****************/
     {
         $$.t = T_ERROR;
         SIMB simb = obtTdS($1);
         if (simb.t == T_ERROR) { yyerror("No existe ninguna variable con ese identificador."); }
         INF inf = obtTdD(simb.ref);
         if (inf.tipo == T_ERROR) { yyerror("No existe ninguna función con ese identificador."); }
-        else if ( ! cmpDom(simb.ref, $3.refe)) /******COMPLETAR******/
-	   yyerror("Dominios incompatibles");
+        else if ( ! cmpDom(simb.ref, $3.refe))
+	        yyerror("Dominios incompatibles");
         else 
         { $$.t = inf.tipo; }
     }
