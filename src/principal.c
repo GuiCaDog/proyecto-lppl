@@ -4,8 +4,8 @@
 /*****************************************************************************/
 #include <stdio.h>
 #include <string.h>
+// #include "libgci.h"
 #include "header.h"
-#include "libgci.h"
 
 int verTdS=FALSE;                        /* Flag para mostrar la TDS         */
 int verbosidad=FALSE;                    /* Flag si se desea una traza       */

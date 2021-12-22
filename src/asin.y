@@ -1,8 +1,8 @@
 %{
 	#include <stdio.h>
 	#include <string.h>
-	#include "libgci.h"
 	#include "libtds.h"
+    #include "libgci.h"
 	#include "header.h"
 %}
 
@@ -290,7 +290,7 @@ expresionMultiplicativa
                 $$.t = T_ENTERO;
         }
         $$.v = creaVarTemp();
-        emite($2, crArgEnt($1.v), crArgEnt($3.v), crArgPos(niv, $$.v);
+        emite($2, crArgEnt($1.v), crArgEnt($3.v), crArgPos(niv, $$.v));
     }
 	;
 expresionUnaria 

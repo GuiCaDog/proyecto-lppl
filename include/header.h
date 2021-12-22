@@ -45,6 +45,7 @@ extern int verTdS; /* Flag para saber si mostrar la TdS */
 /************************************* Variables externas definidas en las librerías */
 extern int dvar; /* Desplazamiento en el Segmento de Variables */
 extern int niv; /* Nivel de anidamiento "global" o "local" */
+extern int si;
 
 typedef struct lista/* Tipo de atributo para listas */
 { 
