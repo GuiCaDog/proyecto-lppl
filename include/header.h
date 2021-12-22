@@ -55,6 +55,7 @@ typedef struct lista/* Tipo de atributo para listas */
 typedef struct exp /* Tipo de atributo para expresiones*/
 { 
   int  t;
+  int  v;
 } EXP;
 #endif  /* _HEADER_H */
 /*****************************************************************************/

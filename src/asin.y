@@ -1,6 +1,7 @@
 %{
 	#include <stdio.h>
 	#include <string.h>
+	#include "libgci.h"
 	#include "libtds.h"
 	#include "header.h"
 %}
@@ -239,8 +240,9 @@ expresionIgualdad
                 yyerror("Los tipos no son equivalentes.");
             else if ($1.t != T_LOGICO || $1.t != T_ENTERO)
                 yyerror("Las expresiones deben ser lógicas o enteros");
-            else
+            else {
                 $$.t = T_LOGICO;
+            }
         }
     }
 	;
@@ -275,7 +277,7 @@ expresionAditiva
     }
 	;
 expresionMultiplicativa 
-	: expresionUnaria { $$.t = $1.t; }
+	: expresionUnaria { $$.t = $1.t; $$.v = $1.v; }
 	| expresionMultiplicativa operadorMultiplicativo expresionUnaria
     {
         $$.t = T_ERROR;
@@ -287,6 +289,8 @@ expresionMultiplicativa
             else
                 $$.t = T_ENTERO;
         }
+        $$.v = creaVarTemp();
+        emite($2, crArgEnt($1.v), crArgEnt($3.v), crArgPos(niv, $$.v);
     }
 	;
 expresionUnaria 
@@ -359,6 +363,7 @@ expresionSufija
         { $$.t = inf.tipo; }
     }
 	;
+/* Asumo $$.v como valor de la CTE (ya esta en el header) */
 constante 
 	: CTE_ { $$.t = T_ENTERO; }
 	| TRUE_ { $$.t = T_LOGICO; }
@@ -379,26 +384,26 @@ operadorLogico
 	;
 /******************************** FRAN ********************************/ 
 operadorIgualdad
-	: EQ_       { $$ = OP_EQ; }
-	| NEQ_      { $$ = OP_NEQ; }
+	: EQ_       { $$ = EIGUAL; }
+	| NEQ_      { $$ = EDIST; }
 	;
 operadorRelacional
-	: GT_       { $$ = OP_GT; }
-	| LT_       { $$ = OP_LT; }
-	| GTEQ_     { $$ = OP_GTEQ; }
-	| LTEQ_     { $$ = OP_LTEQ; }
+	: GT_       { $$ = EMAY; }
+	| LT_       { $$ = EMEN; }
+	| GTEQ_     { $$ = EMAYEQ; }
+	| LTEQ_     { $$ = EMENEQ; }
 	;
 operadorAditivo 
-	: PLUS_     { $$ = OP_PLUS; }
-	| MINUS_    { $$ = OP_MINUS; }
+	: PLUS_     { $$ = ESUM; }
+	| MINUS_    { $$ = EDIF; }
 	;
 operadorMultiplicativo
-	: MULT_     { $$ = OP_MULT; }
-	| DIV_      { $$ = OP_DIV; }
+	: MULT_     { $$ = EMULT; }
+	| DIV_      { $$ = EDIVI; }
 	;
 operadorUnario 
-	: PLUS_     { $$ = OP_INC; }
-	| MINUS_    { $$ = OP_DEC; }
-	| EXCL_     { $$ = OP_NOT; }
+	: PLUS_     { $$ = ESUM; }
+	| MINUS_    { $$ = EDIF; }
+	| EXCL_     { $$ = ESIG; }
 	;
 %%
