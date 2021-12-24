@@ -1,3 +1,4 @@
+*.c
 *.c3d
 *.o
 /include/asin.h
