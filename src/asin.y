@@ -230,10 +230,15 @@ instruccionEntradaSalida
         if (simb.t != T_ERROR) {
             if (simb.t != T_ENTERO) { yyerror("Identificador con tipo no entero."); }
         }
-  }
+        /* TODO: confirmar que funciona como se espera */
+        emite(EREAD, crArgNul(), crArgNul(), crArgPos(niv, simb.d));
+      }
 	| PRINT_ OPAREN_ expresion CPAREN_ SEMIC_
       {
         if ($3.t != T_ERROR && $3.t != T_ENTERO) { yyerror("Expresion con tipo no entero."); }
+
+        /* TODO: confirmar que funciona como se espera */
+        emite(EWRITE, crArgNul(), crArgNul(), crArgPos(niv, $3.v));
       }
 	;
 instruccionSeleccion 
