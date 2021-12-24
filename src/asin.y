@@ -192,6 +192,8 @@ instruccionAsignacion
         else if ($3.t != T_ERROR) {
             if (simb.t != $3.t) { yyerror("Asignacion con tipos no compatibles."); }
         }
+
+        emite(EASIG, crArgPos(niv, $3.v), crArgNul(), crArgPos(simb.n, simb.d));
       }
 	| ID_ OBRACK_ expresion CBRACK_ ASIG_ expresion SEMIC_
       {
@@ -205,6 +207,8 @@ instruccionAsignacion
                     if (dim.telem != $6.t) {
                         yyerror("Asignacion con tipos no compatibles");
                     }
+
+                    emite(EVA, crArgPos(simb.n, simb.d), crArgPos(niv, $3.v), crArgPos(niv, $6.v));
                 }
             }
         }
@@ -231,7 +235,7 @@ instruccionEntradaSalida
             if (simb.t != T_ENTERO) { yyerror("Identificador con tipo no entero."); }
         }
         /* TODO: confirmar que funciona como se espera */
-        emite(EREAD, crArgNul(), crArgNul(), crArgPos(niv, simb.d));
+        emite(EREAD, crArgNul(), crArgNul(), crArgPos(simb.n, simb.d));
       }
 	| PRINT_ OPAREN_ expresion CPAREN_ SEMIC_
       {
