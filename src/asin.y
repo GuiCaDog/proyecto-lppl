@@ -21,7 +21,7 @@
 %token ASIG_ COMMA_ DOT_
 %token <ident> ID_ 
 %token <cent> CTE_
-%type <cent> tipoSimple operadorUnario operadorIgualdad operadorRelacional operadorAditivo operadorMultiplicativo operadorLogico declaracionFuncion declaracion listaDeclaraciones
+%type <cent> tipoSimple operadorUnario operadorIgualdad operadorRelacional operadorAditivo operadorMultiplicativo operadorLogico declaracionFuncion declaracion listaDeclaraciones bloque
 %type <lista> listaCampos parametrosFormales listaParametrosFormales parametrosActuales listaParametrosActuales
 %type <exp> expresion expresionIgualdad expresionRelacional expresionAditiva expresionMultiplicativa expresionUnaria expresionSufija constante 
 
@@ -121,15 +121,52 @@ listaParametrosFormales
 
 /******************************** AREG ********************************/ 
 bloque 
-	: OBRACE_ declaracionVariableLocal listaInstrucciones RETURN_ expresion SEMIC_ CBRACE_
+	: 
+      {
+        /* Cargar enlaces de control */
+        emite(PUSHFP, crArgNul(), crArgNul(), crArgNul());
+
+        /* Reservar espacio para variables locales y temporales */
+        emite(FPTOP, crArgNul(), crArgNul(), crArgNul());
+
+        $<cent>$ = creaLans(si);
+
+        /* TODO: Confirmar que crArgEnt(-1) hace que se reemplace por LANS*/
+        emite(INCTOP, crArgNul(), crArgNul(), crArgEnt(-1));
+      }
+      OBRACE_ declaracionVariableLocal listaInstrucciones RETURN_ expresion SEMIC_ CBRACE_
       {
         INF inf = obtTdD(-1);
         if (inf.tipo == T_ERROR) {
 
            yyerror("Error en la declaracion de la funcion.");
         }
-        else if (inf.tipo != $5.t) {
+        else if (inf.tipo != $6.t) {
             yyerror("Tipos de retorno no compatibles.");
+        }
+
+        /* TODO: Completar la reserva para las variables locales y temporales */
+        /* completaLans($<cent>$, crArgEnt(dvar)); */
+        completaLans($<cent>2, crArgEnt(dvar));
+        
+        /* TODO: Guardar el valor de retorno */
+        /* Quitar dirret de aqui, entiendo que tiene que estar en el bloque llamador
+           y tiene que apilarse ahi para ser desapilado aca y no tener que calcular? */
+        int dirret = TALLA_SEGENLACES + TALLA_TIPO_SIMPLE + inf.tsp;
+        emite(EASIG, crArgPos(niv, $6.v), crArgNul(), crArgPos(niv, dirret));
+
+        /* Liberar el segmento de variables locales y temporales  */
+        emite(TOPFP, crArgNul(), crArgNul(), crArgNul());
+        
+        /* Descargar los enlaces de control  */
+        emite(FPPOP, crArgNul(), crArgNul(), crArgNul());
+
+        /* Emitir FIN si es ‘‘main’’ y RETURN si no es  */
+        if (strcmp(inf.nom, "main") == 0) { 
+            emite(FIN, crArgNul(), crArgNul(), crArgNul());
+        }
+        else { 
+            emite(RET, crArgNul(), crArgNul(), crArgNul()); 
         }
       }	;
 declaracionVariableLocal 
