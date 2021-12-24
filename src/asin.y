@@ -23,7 +23,7 @@
 %token <cent> CTE_
 %type <cent> tipoSimple operadorUnario operadorIgualdad operadorRelacional operadorAditivo operadorMultiplicativo operadorLogico declaracionFuncion declaracion listaDeclaraciones bloque
 %type <lista> listaCampos parametrosFormales listaParametrosFormales parametrosActuales listaParametrosActuales
-%type <exp> expresion expresionIgualdad expresionRelacional expresionAditiva expresionMultiplicativa expresionUnaria expresionSufija constante 
+%type <exp> expresion expresionIgualdad expresionRelacional expresionAditiva expresionMultiplicativa expresionUnaria expresionSufija constante instruccionSeleccion instruccionIteracion
 
 %%
 
@@ -237,18 +237,53 @@ instruccionEntradaSalida
       }
 	;
 instruccionSeleccion 
-	: IF_ OPAREN_ expresion 
+	: IF_ OPAREN_ expresion CPAREN_ 
       { 
         if ($3.t != T_ERROR && $3.t != T_LOGICO) { yyerror("Expresion de if con tipo no booleano."); } 
+
+        /* Uso EXP como tipo aunque no sea autoexplicativo, ya que solo necesito 
+           saber el SI final y la referencia a la LANS */
+        /* Respecto a la teoria, $$.t := S.fin y $$.v := S.lf */
+        $<exp>$.v = creaLans(si);
+        
+        /* TODO: ¿-1 hace que se use el valor con la LANS completada? */
+        emite(EIGUAL, crArgPos(niv, $3.v), crArgEnt(0), crArgEtq(-1));
+        
       }
-	  CPAREN_ instruccion ELSE_ instruccion
+	  instruccion
+      {
+        $<exp>$.t = creaLans(si); 
+        /* TODO: ¿-1 hace que se use el valor con la LANS completada? */
+        emite(GOTOS, crArgNul(), crArgNul(), crArgEtq(-1));
+        completaLans($<exp>5.v, crArgEtq(si));
+      }
+
+      ELSE_ instruccion 
+      {
+        completaLans($<exp>7.t, crArgEtq(si));
+      }
 	;
 instruccionIteracion 
-	: WHILE_ OPAREN_ expresion 
-      {
-        if ($3.t != T_ERROR && $3.t != T_LOGICO) { yyerror("Expresion de while no booleana."); }
+	: WHILE_ {$<exp>$.v = si; } OPAREN_ expresion CPAREN_ 
+      { 
+        /* Uso EXP como tipo aunque no sea autoexplicativo, ya que solo necesito 
+           saber el SI inicial y la referencia a la LANS */
+        /* Respecto a la teoria, $$.t := S.ini y $$.v := S.lf */
+
+        $<exp>$.v = creaLans(si);
+        if ($4.t != T_ERROR && $4.t != T_LOGICO) { yyerror("Expresion de while no booleana."); }
+        
+        /* TODO: ¿-1 hace que se use el valor con la LANS completada? */
+        emite(EIGUAL, crArgPos(niv, $4.v), crArgEnt(0), crArgEtq(-1));
       }
-      CPAREN_ instruccion
+
+      instruccion
+
+      {
+        emite(GOTOS, crArgNul(), crArgNul(), crArgEtq($<exp>$.v));
+        /* TODO: puse Etq porque es lo que se usa en el emite de arriba pero no estoy seguro */
+        completaLans($<exp>5.t, crArgEtq(si)); 
+      }
 	;
 /******************************* MYKOLA *******************************/ 
 expresion 
