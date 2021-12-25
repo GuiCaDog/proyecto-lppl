@@ -315,7 +315,7 @@ expresion
 	;
 /******************************** FRAN ********************************/ 
 expresionIgualdad 
-	: expresionRelacional { $$.t = $1.t; }
+	: expresionRelacional { $$.t = $1.t; $$.v = $1.v; }
 	| expresionIgualdad operadorIgualdad expresionRelacional
     {
         $$.t = T_ERROR;
@@ -326,12 +326,16 @@ expresionIgualdad
                 yyerror("Las expresiones deben ser lógicas o enteros");
             else {
                 $$.t = T_LOGICO;
+                $$.v = creaVarTemp();
+                emite(EASIG, crArgEnt(1), crArgNul(), crArgPos(niv, $$.v));
+                emite($2, crArgPos(niv, $1.v), crArgPos(niv, $3.v), crArgEtq(si + 2));
+                emite(EASIG, crArgEnt(0), crArgNul(), crArgPos(niv, $$.v));
             }
         }
     }
 	;
 expresionRelacional 
-	: expresionAditiva { $$.t = $1.t; }
+	: expresionAditiva { $$.t = $1.t; $$.v = $1.v; }
 	| expresionRelacional operadorRelacional expresionAditiva
     {
         $$.t = T_ERROR;
@@ -340,13 +344,18 @@ expresionRelacional
                 yyerror("Los tipos no son equivalentes.");
             else if ($1.t != T_ENTERO)
                 yyerror("Las expresiones deben ser enteras");
-            else
+            else {
                 $$.t = T_LOGICO;
+                $$.v = creaVarTemp();
+                emite(EASIG, crArgEnt(1), crArgNul(), crArgPos(niv, $$.v));
+                emite($2, crArgPos(niv, $1.v), crArgPos(niv, $3.v), crArgEtq(si + 2));
+                emite(EASIG, crArgEnt(0), crArgNul(), crArgPos(niv, $$.v));
+            }
         }
     }
 	;
 expresionAditiva 
-	: expresionMultiplicativa { $$.t = $1.t; }
+	: expresionMultiplicativa { $$.t = $1.t; $$.v = $1.v; }
 	| expresionAditiva operadorAditivo expresionMultiplicativa
     {
         $$.t = T_ERROR;
@@ -355,8 +364,11 @@ expresionAditiva
                 yyerror("Los tipos no son equivalentes.");
             else if ($1.t != T_ENTERO)
                 yyerror("Las expresiones deben ser enteras");
-            else
+            else {
                 $$.t = T_ENTERO;
+                $$.v = creaVarTemp();
+                emite($2, crArgPos(niv, $1.v), crArgPos(niv, $3.v), crArgPos(niv, $$.v));
+            }
         }
     }
 	;
@@ -374,11 +386,11 @@ expresionMultiplicativa
                 $$.t = T_ENTERO;
         }
         $$.v = creaVarTemp();
-        emite($2, crArgEnt($1.v), crArgEnt($3.v), crArgPos(niv, $$.v));
+        emite($2, crArgPos(niv, $1.v), crArgPos(niv, $3.v), crArgPos(niv, $$.v));
     }
 	;
 expresionUnaria 
-	: expresionSufija { $$.t = $1.t; }
+	: expresionSufija { $$.t = $1.t; $$.v = $1.v; }
 	| operadorUnario expresionUnaria
     {
         $$.t = T_ERROR;
@@ -386,11 +398,19 @@ expresionUnaria
             if ($2.t == T_ENTERO) {
                 if ($1 == OP_NOT)
                     yyerror("El operador NOT es incompatible con enteros");
-                else
+                else {
                     $$.t = T_ENTERO;
+                    if ($1 == OP_MINUS) {
+                        $$.v = creaVarTemp();
+                        emite(ESIG, crArgPos(niv, $2.v), crArgNul(), crArgPos(niv, $$.v));
+                    }
+                }
             } else if ($2.t == T_LOGICO) {
-                if ($1 != OP_MINUS && $1 != OP_PLUS)
+                if ($1 != OP_MINUS && $1 != OP_PLUS) {
                     $$.t = T_LOGICO;
+                    $$.v = creaVarTemp();
+                    emite(EDIF, crArgEnt(1), crArgPos(niv, $2.v), crArgPos(niv, $$.v));
+                }
                 else
                     yyerror("La suma y la resta son operadores binarios. Es incompatible con tipos logicos.");
             } else {
