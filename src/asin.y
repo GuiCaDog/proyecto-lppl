@@ -223,6 +223,9 @@ instruccionAsignacion
                 if (camp.t != $5.t) {
                     yyerror("Asignacion con tipos no compatibles");
                 }
+                int d = simb.d + camp.d;  
+                /* TODO: confirmar que esto esta bien */
+                emite(EASIG, crArgPos(niv, d), crArgNul(), crArgPos(niv, $5.v));
             }
         }
       }
@@ -407,7 +410,7 @@ expresionSufija
             if(simb.t == T_ERROR) { yyerror("Identificador no declarado"); }
             else { $$.t = simb.t; }
           }
-        | ID_ DOT_ ID_
+    | ID_ DOT_ ID_
     {
         $$.t = T_ERROR;
         SIMB simb = obtTdS($1);
