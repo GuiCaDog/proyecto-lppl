@@ -2,7 +2,7 @@
 	#include <stdio.h>
 	#include <string.h>
 	#include "libtds.h"
-    #include "libgci.h"
+        #include "libgci.h"
 	#include "header.h"
 %}
 
@@ -11,6 +11,7 @@
   char *ident ;
   LISTA lista;
   EXP exp;
+  PR pr;
 }
 
 %token INTEGER_ BOOLEAN_ STRUCT_ RETURN_ READ_ PRINT_
@@ -24,14 +25,30 @@
 %type <cent> tipoSimple operadorUnario operadorIgualdad operadorRelacional operadorAditivo operadorMultiplicativo operadorLogico declaracionFuncion declaracion listaDeclaraciones bloque
 %type <lista> listaCampos parametrosFormales listaParametrosFormales parametrosActuales listaParametrosActuales
 %type <exp> expresion expresionIgualdad expresionRelacional expresionAditiva expresionMultiplicativa expresionUnaria expresionSufija constante instruccionSeleccion instruccionIteracion
-
 %%
 
 /******************************* GUILLEM *******************************/ 
 programa
-	: { dvar = 0; niv = 0; cargaContexto(niv); } listaDeclaraciones 
+	: { si=0; dvar = 0; niv = 0; cargaContexto(niv); 
+
+	    /* Reservar espacio para variables globales */
+            $<pr>$.ref1 = creaLans(si);
+            emite(INCTOP, crArgNul(), crArgNul(), crArgEnt(-1));
+
+	    /* Emitir el salto al comienzo de la funcion */
+            $<pr>$.ref2 = creaLans(si);
+            emite(GOTOS, crArgNul(), crArgNul(), crArgEtq(-1));
+
+          } listaDeclaraciones 
           { if($2 == 0) yyerror("Programa sin main declarado");
             else if($2 == -2) yyerror("Programa con mas de una funcion main");
+	    else {
+		/*Completar la reserva de espacio para las variables globales*/
+        	completaLans($<pr>1.ref1, crArgEnt(dvar));
+		/*Completar el salto al comienzo de la funci´on ''main''*/
+		SIMB simbMain = obtTdS("main"); 
+        	completaLans($<pr>1.ref2, crArgEtq(simbMain.d));
+            }
           } 
 	;
 listaDeclaraciones
@@ -89,7 +106,7 @@ declaracionFuncion
 	: tipoSimple ID_  
           { niv+=1; cargaContexto(niv); $<cent>$ = dvar; dvar = 0; }
           OPAREN_ parametrosFormales CPAREN_  
-          { if( ! insTdS($2, FUNCION, $1, niv-1, -1, $5.refe)) {
+          { if( ! insTdS($2, FUNCION, $1, niv-1, si, $5.refe)) {
 	         yyerror("Identificador de funcion repetido"); 
               }
           } 
@@ -294,6 +311,7 @@ instruccionIteracion
       {
         emite(GOTOS, crArgNul(), crArgNul(), crArgEtq($<exp>$.v));
         /* TODO: puse Etq porque es lo que se usa en el emite de arriba pero no estoy seguro */
+	/* -Guillem: aqui deberia ser $<exp>6.t? */
         completaLans($<exp>5.t, crArgEtq(si)); 
       }
 	;

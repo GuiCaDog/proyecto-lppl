@@ -58,5 +58,11 @@ typedef struct exp /* Tipo de atributo para expresiones*/
   int  t;
   int  v;
 } EXP;
+
+typedef struct pr /* Tipo de atributo para programa*/
+{ 
+  int  ref1;
+  int  ref2;
+} PR;
 #endif  /* _HEADER_H */
 /*****************************************************************************/
