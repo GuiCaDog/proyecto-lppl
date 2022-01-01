@@ -164,6 +164,7 @@ bloque
 
         /* TODO: Completar la reserva para las variables locales y temporales */
         /* completaLans($<cent>$, crArgEnt(dvar)); */
+	/*Guillem: Deberia ser $<cent>1 ? */
         completaLans($<cent>2, crArgEnt(dvar));
         
         /* TODO: Guardar el valor de retorno */
@@ -317,7 +318,7 @@ instruccionIteracion
 	;
 /******************************* MYKOLA *******************************/ 
 expresion 
-	: expresionIgualdad { $$.t = $1.t; }
+	: expresionIgualdad { $$.t = $1.t; $$.v = $1.v;}
 	| expresion operadorLogico expresionIgualdad
     {
         $$.t = T_ERROR;
@@ -326,8 +327,13 @@ expresion
                 yyerror("Los tipos no son equivalentes");
             else if ($1.t != T_LOGICO)
                 yyerror("Las expresion deber ser lógicas");
-            else
+            else {
                 $$.t = T_LOGICO;
+                $$.v = creaVarTemp();
+                emite(EASIG, crArgEnt(1), crArgNul(), crArgPos(niv, $$.v));
+                emite($2, crArgPos(niv, $1.v), crArgPos(niv, $3.v), crArgEtq(si + 2));
+                emite(EASIG, crArgEnt(0), crArgNul(), crArgPos(niv, $$.v));
+            }
         }
     }
 	;
@@ -439,15 +445,23 @@ expresionUnaria
 	;
 /******************************* MYKOLA *******************************/ 
 expresionSufija 
-	: constante {$$.t = $1.t; }
-	| OPAREN_ expresion CPAREN_ {$$.t = $2.t; }
+	: constante {
+        $$.t = $1.t; 
+        $$.v = creaVarTemp(); 
+        emite(EASIG, crArgEnt($1.v), crArgNul(), crArgPos(niv, $$.v));
+        }
+	| OPAREN_ expresion CPAREN_ {$$.t = $2.t; $$.v = $2.v;}
 	| ID_ 
-          {
-            $$.t = T_ERROR;
-            SIMB simb = obtTdS($1);
-            if(simb.t == T_ERROR) { yyerror("Identificador no declarado"); }
-            else { $$.t = simb.t; }
-          }
+    {
+        $$.t = T_ERROR;
+        SIMB simb = obtTdS($1);
+        if(simb.t == T_ERROR) { yyerror("Identificador no declarado"); }
+        else { 
+            $$.t = simb.t; 
+            $$.v = creaVarTemp();
+            emite(EASIG, crArgPos(niv, simb.d), crArgNul(), crArgPos(niv, $$.v));
+        }
+    }
     | ID_ DOT_ ID_
     {
         $$.t = T_ERROR;
@@ -457,7 +471,12 @@ expresionSufija
         else {
             CAMP camp = obtTdR(simb.ref, $3);
             if (camp.t == T_ERROR) { yyerror("Acceso a campo no declarado."); }   
-            else { $$.t = camp.t; }
+            else { 
+                $$.t = camp.t;
+                int d = simb.d + camp.d;
+                $$.v = creaVarTemp();
+                emite(EASIG, crArgPos(niv, d), crArgNul(), crArgPos(niv, $$.v));
+            }
         }
     }
 	| ID_ OBRACK_ expresion CBRACK_
@@ -470,39 +489,55 @@ expresionSufija
         else {
             DIM dim = obtTdA(simb.ref);
             $$.t = dim.telem;
+            $$.v = creaVarTemp();
+            emite(EAV, crArgPos(simb.n, simb.d), crArgPos(niv, $3.v), crArgPos(niv, $$.v));
             }
     }
-	| ID_ OPAREN_ parametrosActuales CPAREN_
+	| ID_ OPAREN_ 
+    {
+        emite(INCTOP, crArgNul(), crArgNul(), crArgEnt(TALLA_TIPO_SIMPLE));
+    }
+    parametrosActuales CPAREN_
     {
         $$.t = T_ERROR;
         SIMB simb = obtTdS($1);
         if (simb.t == T_ERROR) { yyerror("No existe ninguna variable con ese identificador."); }
         INF inf = obtTdD(simb.ref);
         if (inf.tipo == T_ERROR) { yyerror("No existe ninguna función con ese identificador."); }
-        else if ( ! cmpDom(simb.ref, $3.refe))
+        else if ( ! cmpDom(simb.ref, $4.refe))
 	        yyerror("Dominios incompatibles");
-        else 
-        { $$.t = inf.tipo; }
+        else { 
+            $$.t = inf.tipo; 
+            emite(CALL, crArgNul(), crArgNul(), crArgEtq(simb.d)); 
+            emite(DECTOP, crArgNul(), crArgNul(), crArgEnt(inf.tsp));
+            $$.v = creaVarTemp();
+            emite(EPOP, crArgNul(), crArgNul(), crArgPos(niv, $$.v));
+        }
     }
 	;
 /* Asumo $$.v como valor de la CTE (ya esta en el header) */
 constante 
-	: CTE_ { $$.t = T_ENTERO; }
-	| TRUE_ { $$.t = T_LOGICO; }
-	| FALSE_ { $$.t = T_LOGICO; }
+	: CTE_ { $$.t = T_ENTERO; $$.v = $1;}
+	| TRUE_ { $$.t = T_LOGICO; $$.v = 1;}
+	| FALSE_ { $$.t = T_LOGICO; $$.v = 0;}
 	;
 parametrosActuales 
 	: {$$.refe = insTdD(-1, T_VACIO);}
 	| listaParametrosActuales {$$.refe = $1.refe;}
 	;
 listaParametrosActuales 
-	: expresion { $$.refe = insTdD(-1, $1.t); }
-	| expresion COMMA_ listaParametrosActuales
-          { $$.refe = insTdD($3.refe, $1.t); }
+	: expresion 
+    { 
+        $$.refe = insTdD(-1, $1.t); 
+        emite(EPUSH, crArgNul(), crArgNul(), crArgPos(niv, $1.v));
+    }
+	| expresion COMMA_ { emite(EPUSH, crArgNul(), crArgNul(), crArgPos(niv, $1.v)); }
+    listaParametrosActuales
+    { $$.refe = insTdD($4.refe, $1.t); }
 	;
 operadorLogico
-	: AND_      { $$ = OP_AND; }
-	| OR_       { $$ = OP_OR;  }
+	: AND_      { $$ = EMULT; }
+	| OR_       { $$ = ESUM;  }
 	;
 /******************************** FRAN ********************************/ 
 operadorIgualdad
