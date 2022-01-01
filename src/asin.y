@@ -165,13 +165,13 @@ bloque
         /* TODO: Completar la reserva para las variables locales y temporales */
         /* completaLans($<cent>$, crArgEnt(dvar)); */
 	/*Guillem: Deberia ser $<cent>1 ? */
-        completaLans($<cent>2, crArgEnt(dvar));
+        completaLans($<cent>1, crArgEnt(dvar));
         
         /* TODO: Guardar el valor de retorno */
         /* Quitar dirret de aqui, entiendo que tiene que estar en el bloque llamador
            y tiene que apilarse ahi para ser desapilado aca y no tener que calcular? */
         int dirret = TALLA_SEGENLACES + TALLA_TIPO_SIMPLE + inf.tsp;
-        emite(EASIG, crArgPos(niv, $6.v), crArgNul(), crArgPos(niv, dirret));
+        emite(EASIG, crArgPos(niv, $6.v), crArgNul(), crArgPos(niv, -dirret));
 
         /* Liberar el segmento de variables locales y temporales  */
         emite(TOPFP, crArgNul(), crArgNul(), crArgNul());
@@ -313,7 +313,7 @@ instruccionIteracion
         emite(GOTOS, crArgNul(), crArgNul(), crArgEtq($<exp>$.v));
         /* TODO: puse Etq porque es lo que se usa en el emite de arriba pero no estoy seguro */
 	/* -Guillem: aqui deberia ser $<exp>6.t? */
-        completaLans($<exp>5.t, crArgEtq(si)); 
+        completaLans($<exp>6.t, crArgEtq(si)); 
       }
 	;
 /******************************* MYKOLA *******************************/ 
