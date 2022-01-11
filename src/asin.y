@@ -237,7 +237,7 @@ instruccionAsignacion
         if (simb.t != T_ERROR && $5.t != T_ERROR) {
             if (simb.t != T_RECORD) { yyerror("Acceso a campo de identificador no de tipo registro."); }
             else {
-                CAMP camp = obtTdR(simb.ref, $1);
+                CAMP camp = obtTdR(simb.ref, $3);
                 if (camp.t != $5.t) {
                     yyerror("Asignacion con tipos no compatibles");
                 }
