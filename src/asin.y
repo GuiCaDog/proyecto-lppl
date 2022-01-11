@@ -346,7 +346,7 @@ expresionIgualdad
         if ($1.t != T_ERROR && $3.t != T_ERROR) {
             if ($1.t != $3.t)
                 yyerror("Los tipos no son equivalentes.");
-            else if ($1.t != T_LOGICO || $1.t != T_ENTERO)
+            else if ($1.t != T_LOGICO && $1.t != T_ENTERO)
                 yyerror("Las expresiones deben ser lógicas o enteros");
             else {
                 $$.t = T_LOGICO;
