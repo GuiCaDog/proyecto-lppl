@@ -313,7 +313,7 @@ instruccionIteracion
         emite(GOTOS, crArgNul(), crArgNul(), crArgEtq($<exp>$.v));
         /* TODO: puse Etq porque es lo que se usa en el emite de arriba pero no estoy seguro */
 	/* -Guillem: aqui deberia ser $<exp>6.t? */
-        completaLans($<exp>6.t, crArgEtq(si)); 
+        completaLans($<exp>6.v, crArgEtq(si)); 
       }
 	;
 /******************************* MYKOLA *******************************/ 
