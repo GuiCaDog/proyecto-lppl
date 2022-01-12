@@ -282,7 +282,7 @@ instruccionSeleccion
       }
 	  instruccion
       {
-        $<exp>$.t = creaLans(si); 
+        $<exp>$.v = creaLans(si); 
         /* TODO: ¿-1 hace que se use el valor con la LANS completada? */
         emite(GOTOS, crArgNul(), crArgNul(), crArgEtq(-1));
         completaLans($<exp>5.v, crArgEtq(si));
@@ -290,7 +290,7 @@ instruccionSeleccion
 
       ELSE_ instruccion 
       {
-        completaLans($<exp>7.t, crArgEtq(si));
+        completaLans($<exp>7.v, crArgEtq(si));
       }
 	;
 instruccionIteracion 
@@ -310,7 +310,7 @@ instruccionIteracion
       instruccion
 
       {
-        emite(GOTOS, crArgNul(), crArgNul(), crArgEtq($<exp>$.v));
+        emite(GOTOS, crArgNul(), crArgNul(), crArgEtq($<exp>2.v));
         /* TODO: puse Etq porque es lo que se usa en el emite de arriba pero no estoy seguro */
 	/* -Guillem: aqui deberia ser $<exp>6.t? */
         completaLans($<exp>6.v, crArgEtq(si)); 
@@ -330,9 +330,14 @@ expresion
             else {
                 $$.t = T_LOGICO;
                 $$.v = creaVarTemp();
+		if($2 == EMULT) {
+			emite(EMULT, crArgPos(niv, $1.v), crArgPos(niv, $3.v), crArgPos(niv, $$.v));
+		} 
+		else {
+			emite(ESUM, crArgPos(niv, $1.v), crArgPos(niv, $3.v), crArgPos(niv, $$.v));
+                emite(EMENEQ, crArgPos(niv, $1.v), crArgEnt(1), crArgEtq(si + 2));
                 emite(EASIG, crArgEnt(1), crArgNul(), crArgPos(niv, $$.v));
-                emite($2, crArgPos(niv, $1.v), crArgPos(niv, $3.v), crArgEtq(si + 2));
-                emite(EASIG, crArgEnt(0), crArgNul(), crArgPos(niv, $$.v));
+		}
             }
         }
     }

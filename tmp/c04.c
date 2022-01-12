@@ -34,9 +34,11 @@ int main()
   while (! ok ) {
     read(x); read(y);
     if (((x>=0) && (x<10)) && ((y>=0) && (y<10))) ok = true;
-    else {}
+    else { ok = true; }
   }
-  
+ 
+  print(a[x]);
+  print(suma(a[x],y)); 
   print( division(suma(a[x], y), 2));
   
   return 0;
