@@ -148,7 +148,6 @@ bloque
 
         $<cent>$ = creaLans(si);
 
-        /* TODO: Confirmar que crArgEnt(-1) hace que se reemplace por LANS*/
         emite(INCTOP, crArgNul(), crArgNul(), crArgEnt(-1));
       }
       OBRACE_ declaracionVariableLocal listaInstrucciones RETURN_ expresion SEMIC_ CBRACE_
@@ -162,13 +161,9 @@ bloque
             yyerror("Tipos de retorno no compatibles.");
         }
 
-        /* TODO: Completar la reserva para las variables locales y temporales */
-        /* completaLans($<cent>$, crArgEnt(dvar)); */
-	/*Guillem: Deberia ser $<cent>1 ? */
         completaLans($<cent>1, crArgEnt(dvar));
         
-        /* TODO: Guardar el valor de retorno */
-        /* Quitar dirret de aqui, entiendo que tiene que estar en el bloque llamador
+        /* Quitar dirret de aqui (?), entiendo que tiene que estar en el bloque llamador
            y tiene que apilarse ahi para ser desapilado aca y no tener que calcular? */
         int dirret = TALLA_SEGENLACES + TALLA_TIPO_SIMPLE + inf.tsp;
         emite(EASIG, crArgPos(niv, $6.v), crArgNul(), crArgPos(niv, -dirret));
@@ -242,8 +237,7 @@ instruccionAsignacion
                     yyerror("Asignacion con tipos no compatibles");
                 }
                 int d = simb.d + camp.d;  
-                /* TODO: confirmar que esto esta bien */
-                emite(EASIG, crArgPos(niv, d), crArgNul(), crArgPos(niv, $5.v));
+                emite(EASIG, crArgPos(niv, $5.v), crArgNul(), crArgPos(simb.n, d));
             }
         }
       }
@@ -255,14 +249,12 @@ instruccionEntradaSalida
         if (simb.t != T_ERROR) {
             if (simb.t != T_ENTERO) { yyerror("Identificador con tipo no entero."); }
         }
-        /* TODO: confirmar que funciona como se espera */
         emite(EREAD, crArgNul(), crArgNul(), crArgPos(simb.n, simb.d));
       }
 	| PRINT_ OPAREN_ expresion CPAREN_ SEMIC_
       {
         if ($3.t != T_ERROR && $3.t != T_ENTERO) { yyerror("Expresion con tipo no entero."); }
 
-        /* TODO: confirmar que funciona como se espera */
         emite(EWRITE, crArgNul(), crArgNul(), crArgPos(niv, $3.v));
       }
 	;
@@ -276,14 +268,12 @@ instruccionSeleccion
         /* Respecto a la teoria, $$.t := S.fin y $$.v := S.lf */
         $<exp>$.v = creaLans(si);
         
-        /* TODO: ¿-1 hace que se use el valor con la LANS completada? */
         emite(EIGUAL, crArgPos(niv, $3.v), crArgEnt(0), crArgEtq(-1));
         
       }
 	  instruccion
       {
         $<exp>$.v = creaLans(si); 
-        /* TODO: ¿-1 hace que se use el valor con la LANS completada? */
         emite(GOTOS, crArgNul(), crArgNul(), crArgEtq(-1));
         completaLans($<exp>5.v, crArgEtq(si));
       }
@@ -303,7 +293,6 @@ instruccionIteracion
         $<exp>$.v = creaLans(si);
         if ($4.t != T_ERROR && $4.t != T_LOGICO) { yyerror("Expresion de while no booleana."); }
         
-        /* TODO: ¿-1 hace que se use el valor con la LANS completada? */
         emite(EIGUAL, crArgPos(niv, $4.v), crArgEnt(0), crArgEtq(-1));
       }
 
@@ -311,8 +300,6 @@ instruccionIteracion
 
       {
         emite(GOTOS, crArgNul(), crArgNul(), crArgEtq($<exp>2.v));
-        /* TODO: puse Etq porque es lo que se usa en el emite de arriba pero no estoy seguro */
-	/* -Guillem: aqui deberia ser $<exp>6.t? */
         completaLans($<exp>6.v, crArgEtq(si)); 
       }
 	;
@@ -419,23 +406,25 @@ expresionMultiplicativa
     }
 	;
 expresionUnaria 
-	: expresionSufija { $$.t = $1.t; $$.v = $1.v; }
+	: expresionSufija { $$.t = $1.t; $$.v = $1.v;
+
+        }
 	| operadorUnario expresionUnaria
     {
         $$.t = T_ERROR;
         if ($2.t != T_ERROR) {
             if ($2.t == T_ENTERO) {
-                if ($1 == OP_NOT)
+                if ($1 == ESIG)
                     yyerror("El operador NOT es incompatible con enteros");
                 else {
                     $$.t = T_ENTERO;
-                    if ($1 == OP_MINUS) {
+                    if ($1 == EDIF) {
                         $$.v = creaVarTemp();
                         emite(ESIG, crArgPos(niv, $2.v), crArgNul(), crArgPos(niv, $$.v));
                     }
                 }
             } else if ($2.t == T_LOGICO) {
-                if ($1 != OP_MINUS && $1 != OP_PLUS) {
+                if ($1 != EDIF && $1 != ESUM) {
                     $$.t = T_LOGICO;
                     $$.v = creaVarTemp();
                     emite(EDIF, crArgEnt(1), crArgPos(niv, $2.v), crArgPos(niv, $$.v));
@@ -480,7 +469,7 @@ expresionSufija
                 $$.t = camp.t;
                 int d = simb.d + camp.d;
                 $$.v = creaVarTemp();
-                emite(EASIG, crArgPos(niv, d), crArgNul(), crArgPos(niv, $$.v));
+                emite(EASIG, crArgPos(simb.n, d), crArgNul(), crArgPos(niv, $$.v));
             }
         }
     }
@@ -520,7 +509,6 @@ expresionSufija
         }
     }
 	;
-/* Asumo $$.v como valor de la CTE (ya esta en el header) */
 constante 
 	: CTE_ { $$.t = T_ENTERO; $$.v = $1;}
 	| TRUE_ { $$.t = T_LOGICO; $$.v = 1;}
