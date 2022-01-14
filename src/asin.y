@@ -464,7 +464,7 @@ expresionSufija
         else { 
             $$.t = simb.t; 
             $$.v = creaVarTemp();
-            emite(EASIG, crArgPos(niv, simb.d), crArgNul(), crArgPos(niv, $$.v));
+            emite(EASIG, crArgPos(simb.n, simb.d), crArgNul(), crArgPos(niv, $$.v));
         }
     }
     | ID_ DOT_ ID_
