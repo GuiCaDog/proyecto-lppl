@@ -37,8 +37,6 @@ int main()
     else { ok = true; }
   }
  
-  print(a[x]);
-  print(suma(a[x],y)); 
   print( division(suma(a[x], y), 2));
   
   return 0;
